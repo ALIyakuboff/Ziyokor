@@ -1,14 +1,9 @@
 import { Server as HttpServer } from "http";
-import { Server as SocketIOServer, Socket } from "socket.io";
+import { Server as SocketIOServer } from "socket.io";
 import jwt from "jsonwebtoken";
 import { query } from "./db";
 
-let io: SocketIOServer | null = null;
-
-interface AuthenticatedSocket extends Socket {
-    userId?: string;
-    userRole?: string;
-}
+let io: any = null;
 
 export function initSocketServer(httpServer: HttpServer) {
     io = new SocketIOServer(httpServer, {
@@ -79,7 +74,7 @@ export function initSocketServer(httpServer: HttpServer) {
     return io;
 }
 
-export function getSocketServer(): SocketIOServer | null {
+export function getSocketServer(): any {
     return io;
 }
 
