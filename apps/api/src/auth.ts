@@ -20,7 +20,7 @@ export function signToken(user: AuthedUser) {
     return jwt.sign(
         { sub: user.id, role: user.role, full_name: user.full_name, phone_login: user.phone_login },
         JWT_SECRET,
-        { expiresIn: JWT_EXPIRES_IN }
+        { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions
     );
 }
 

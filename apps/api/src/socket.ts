@@ -19,7 +19,7 @@ export function initSocketServer(httpServer: HttpServer) {
     });
 
     // Authentication middleware
-    io.use(async (socket: AuthenticatedSocket, next) => {
+    io.use(async (socket: any, next) => {
         try {
             const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace("Bearer ", "");
 
@@ -55,7 +55,7 @@ export function initSocketServer(httpServer: HttpServer) {
         }
     });
 
-    io.on("connection", (socket: AuthenticatedSocket) => {
+    io.on("connection", (socket: any) => {
         console.log(`[socket] client connected: ${socket.id} (user: ${socket.userId}, role: ${socket.userRole})`);
 
         // Join user-specific room
