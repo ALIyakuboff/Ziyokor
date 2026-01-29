@@ -7,11 +7,7 @@
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
-        "moduleResolution": "node",
-        "typeRoots": [
-            "./node_modules/@types",
-            "../../node_modules/@types"
-        ]
+        "moduleResolution": "node"
     },
     "include": [
         "src/**/*"
