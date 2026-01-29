@@ -19,7 +19,7 @@ export function initSocketServer(httpServer: HttpServer) {
     });
 
     // Authentication middleware
-    io.use(async (socket: any, next) => {
+    io.use(async (socket: any, next: any) => {
         try {
             const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace("Bearer ", "");
 

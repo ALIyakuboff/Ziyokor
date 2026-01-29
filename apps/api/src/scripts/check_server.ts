@@ -21,7 +21,7 @@ async function run() {
     try {
         const res = await fetch('http://localhost:8080/health'); // or similar
         console.log('Server status:', res.status);
-    } catch (e) {
+    } catch (e: any) {
         console.log('Server not reachable:', e.message);
     }
 }
