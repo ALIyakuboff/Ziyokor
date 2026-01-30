@@ -65,7 +65,7 @@ export default function ReportModal({ onClose, defaultDate, isAdmin = true }: { 
                             onClick={() => handleDownload("Haftalik")}
                             style={{ background: "#41d17a", color: "#000", fontWeight: "bold" }}
                         >
-                            {loading ? "Yuklanmoqda..." : "📊 Haftalik PDF (Barchaniki)"}
+                            {loading ? "Yuklanmoqda..." : `📊 Haftalik PDF ${isAdmin ? "(Barchaniki)" : ""}`}
                         </button>
 
                         <button
@@ -73,7 +73,7 @@ export default function ReportModal({ onClose, defaultDate, isAdmin = true }: { 
                             disabled={loading}
                             onClick={() => handleDownload("Oylik")}
                         >
-                            📅 Oylik PDF (Barchaniki)
+                            {loading ? "Yuklanmoqda..." : `📅 Oylik PDF ${isAdmin ? "(Barchaniki)" : ""}`}
                         </button>
                     </div>
                 </div>
