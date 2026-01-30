@@ -1,40 +1,14 @@
-import React, { useState } from "react";
-import type { Task } from "../../api/tasks";
-import { doneTask, startTask } from "../../api/tasks";
-import CommentModalWhite from "./CommentModalWhite";
+import { Play, MessageCircle, Check } from "lucide-react";
+
+// ... existing imports
 
 export default function TaskListCarryover({ items, onRefresh }: { items: Task[]; onRefresh: () => void }) {
-    const [commentSavedIds, setCommentSavedIds] = useState<Record<string, boolean>>({});
-    const [commentFor, setCommentFor] = useState<Task | null>(null);
-
-    const [pendingDoneTask, setPendingDoneTask] = useState<Task | null>(null);
-
-    async function onDone(t: Task) {
-        const hasComments = (t.comment_count || 0) > 0 || !!commentSavedIds[t.id];
-
-        if (!hasComments) {
-            setPendingDoneTask(t);
-            setCommentFor(t);
-            return;
-        }
-
-        try {
-            await doneTask(t.id);
-            onRefresh();
-        } catch (e: any) {
-            if (e?.message === "COMMENT_REQUIRED") {
-                setPendingDoneTask(t);
-                setCommentFor(t);
-            } else {
-                alert("Xato: " + (e?.message || "Bajarib bo'lmadi"));
-            }
-        }
-    }
+    // ... existing logic
 
     return (
         <>
             <div className="taskList carryoverBox">
-                {items.length === 0 && <div className="muted small">Qolgan ish yo‘q ✅</div>}
+                {items.length === 0 && <div className="muted small">Qolgan ish yo‘q <Check size={14} style={{ display: 'inline', verticalAlign: 'middle' }} /></div>}
 
                 {items.map((t) => (
                     <div key={t.id} className={`taskRow carryoverRow ${t.status === "done" ? "taskDone" : ""}`}>
@@ -43,23 +17,24 @@ export default function TaskListCarryover({ items, onRefresh }: { items: Task[];
                         <div className="taskActions">
                             {t.status !== "done" && (
                                 <button className="btn mini" onClick={() => startTask(t.id).then(onRefresh)}>
-                                    ▶
+                                    <Play size={18} />
                                 </button>
                             )}
                             <div style={{ display: "flex", gap: "6px" }}>
                                 {t.comment_count !== undefined && t.comment_count > 0 && (
                                     <button className="btn mini" onClick={() => setCommentFor(t)} title="Izohlarni ko'rish">
-                                        💬
+                                        <MessageCircle size={18} />
                                     </button>
                                 )}
                                 <button className="btn mini ok" onClick={() => onDone(t)}>
-                                    ✅
+                                    <Check size={18} />
                                 </button>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
+            {/* ... rest of component */}
 
             {commentFor && (
                 <CommentModalWhite

@@ -42,7 +42,9 @@ export default function DayCard9x16({
                 <div className="divider" />
 
                 <div className="section">
-                    <div className="sectionTitle red">Kecha qolganlar 🔴</div>
+                    <div className="sectionTitle red" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        Kecha qolganlar <AlertCircle size={16} color="red" />
+                    </div>
                     <TaskListCarryover items={group?.carryover || []} onRefresh={onRefresh} />
                 </div>
             </div>

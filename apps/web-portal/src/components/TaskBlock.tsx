@@ -1,20 +1,8 @@
-import React, { useState } from "react";
-import AdminCommentModal from "./AdminCommentModal";
-import { todayISO } from "../utils/date";
+import { MessageCircle, Trash2 } from "lucide-react";
+// ... (existing imports)
 
 export default function TaskBlock({
-    items,
-    tone,
-    onDelete
-}: {
-    items: any[];
-    tone: "normal" | "danger";
-    onDelete?: (taskId: string) => void;
-}) {
-    const [viewingComments, setViewingComments] = useState<any | null>(null);
-    const today = todayISO();
-
-    if (!items.length) return <div className="muted small">—</div>;
+    // ...
     return (
         <div className={`taskList ${tone === "danger" ? "carryoverBox" : ""}`}>
             {items.map((t) => {
@@ -26,7 +14,7 @@ export default function TaskBlock({
                         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                             {(t.status === "done" || t.comment_count > 0) && (
                                 <button className="linkBtn" onClick={() => setViewingComments(t)} style={{ padding: "4px" }}>
-                                    💬
+                                    <MessageCircle size={18} />
                                 </button>
                             )}
 
@@ -40,7 +28,7 @@ export default function TaskBlock({
                                     }}
                                     style={{ padding: "4px" }}
                                 >
-                                    🗑️
+                                    <Trash2 size={18} />
                                 </button>
                             )}
 
@@ -49,6 +37,7 @@ export default function TaskBlock({
                     </div>
                 );
             })}
+// ...
 
             {viewingComments && (
                 <AdminCommentModal

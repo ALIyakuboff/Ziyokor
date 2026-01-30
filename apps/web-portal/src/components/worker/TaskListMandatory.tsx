@@ -1,34 +1,11 @@
-import React, { useState } from "react";
-import type { Task } from "../../api/tasks";
-import { doneTask, startTask } from "../../api/tasks";
-import CommentModalWhite from "./CommentModalWhite";
-import TaskTimer from "./TaskTimer";
+import { MessageCircle, Check } from "lucide-react";
+
+// ... existing imports
 
 export default function TaskListMandatory({ items, onRefresh }: { items: Task[]; onRefresh: () => void }) {
-    const [commentFor, setCommentFor] = useState<Task | null>(null);
-    const [commentSavedIds, setCommentSavedIds] = useState<Record<string, boolean>>({});
+    // ... existing state
 
-    const [pendingDoneTask, setPendingDoneTask] = useState<Task | null>(null);
-
-    async function onDone(t: Task) {
-        const hasComments = (t.comment_count || 0) > 0 || !!commentSavedIds[t.id];
-
-        if (!hasComments) {
-            setPendingDoneTask(t);
-            setCommentFor(t);
-            return;
-        }
-        try {
-            await doneTask(t.id);
-            onRefresh();
-        } catch (e: any) {
-            if (e?.message === "COMMENT_REQUIRED") {
-                setPendingDoneTask(t);
-                setCommentFor(t);
-            }
-            else throw e;
-        }
-    }
+    // ... existing onDone
 
     return (
         <>
@@ -36,6 +13,7 @@ export default function TaskListMandatory({ items, onRefresh }: { items: Task[];
                 {items.length === 0 && <div className="muted small">Majburiy ish yo‘q</div>}
 
                 {items.map((t) => {
+                    // ... existing variables
                     const commented = (t.comment_count !== undefined && t.comment_count > 0) || !!commentSavedIds[t.id];
                     const done = t.status === "done";
                     const disabledDone = !done && !commented;
@@ -52,7 +30,7 @@ export default function TaskListMandatory({ items, onRefresh }: { items: Task[];
                             <div className="taskActions">
                                 {t.comment_count !== undefined && t.comment_count > 0 && (
                                     <button className="btn mini" onClick={() => setCommentFor(t)} title="Izohlarni ko'rish">
-                                        💬
+                                        <MessageCircle size={18} />
                                     </button>
                                 )}
                                 {t.status !== "done" && (
@@ -61,7 +39,7 @@ export default function TaskListMandatory({ items, onRefresh }: { items: Task[];
                                         onClick={() => onDone(t)}
                                         title={disabledDone ? "Izoh yozish kerak" : "Tugatish"}
                                     >
-                                        ✅
+                                        <Check size={18} />
                                     </button>
                                 )}
                             </div>
@@ -69,6 +47,7 @@ export default function TaskListMandatory({ items, onRefresh }: { items: Task[];
                     );
                 })}
             </div>
+            {/* ... rest of component */}
 
             {commentFor && (
                 <CommentModalWhite

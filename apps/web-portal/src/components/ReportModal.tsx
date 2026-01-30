@@ -63,17 +63,18 @@ export default function ReportModal({ onClose, defaultDate, isAdmin = true }: { 
                             className="btn primary"
                             disabled={loading}
                             onClick={() => handleDownload("Haftalik")}
-                            style={{ background: "#41d17a", color: "#000", fontWeight: "bold" }}
+                            style={{ background: "#41d17a", color: "#000", fontWeight: "bold", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                         >
-                            {loading ? "Yuklanmoqda..." : `📊 Haftalik PDF ${isAdmin ? "(Barchaniki)" : ""}`}
+                            {loading ? "Yuklanmoqda..." : <><BarChart size={18} /> Haftalik PDF {isAdmin ? "(Barchaniki)" : ""}</>}
                         </button>
 
                         <button
                             className="btn"
                             disabled={loading}
                             onClick={() => handleDownload("Oylik")}
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                         >
-                            {loading ? "Yuklanmoqda..." : `📅 Oylik PDF ${isAdmin ? "(Barchaniki)" : ""}`}
+                            {loading ? "Yuklanmoqda..." : <><Calendar size={18} /> Oylik PDF {isAdmin ? "(Barchaniki)" : ""}</>}
                         </button>
                     </div>
                 </div>

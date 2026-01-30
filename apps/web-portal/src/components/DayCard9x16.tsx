@@ -37,7 +37,9 @@ export default function DayCard9x16({
             <div className="divider" />
 
             <div className="section">
-                <div className="sectionTitle">Carryover 🔴</div>
+                <div className="sectionTitle" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    Carryover <AlertCircle size={16} color="red" />
+                </div>
                 <TaskBlock items={group?.carryover || []} tone="danger" onDelete={onDelete} />
             </div>
         </div>
