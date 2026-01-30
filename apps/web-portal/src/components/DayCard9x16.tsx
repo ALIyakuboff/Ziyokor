@@ -25,7 +25,7 @@ export default function DayCard9x16({
             </div>
 
             <div className="section">
-                <div className="sectionTitle">Majburiy ishlar 🔒</div>
+                <div className="sectionTitle">Majburiy ishlar</div>
                 <TaskBlock items={group?.mandatory || []} tone="normal" onDelete={onDelete} />
             </div>
 
