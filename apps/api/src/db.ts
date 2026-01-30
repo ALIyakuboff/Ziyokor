@@ -60,7 +60,9 @@ async function ensureDefaultAdmin() {
 
     const existing = await query<{ id: string }>("SELECT id FROM users WHERE phone_login=$1 LIMIT 1", [phone]);
     if (existing.rows.length) {
-        console.log("[db] admin exists");
+        console.log("[db] admin exists, ensuring is_active=true");
+        // Ensure the admin is active and has the correct role
+        await query("UPDATE users SET is_active=true, role='admin' WHERE phone_login=$1", [phone]);
         return;
     }
 
