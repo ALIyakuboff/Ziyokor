@@ -32,7 +32,14 @@ export default function App() {
         }
     }, [token]);
 
-    const hash = window.location.hash || "";
+    const [hash, setHash] = React.useState(window.location.hash);
+
+    useEffect(() => {
+        const onHashChange = () => setHash(window.location.hash);
+        window.addEventListener("hashchange", onHashChange);
+        return () => window.removeEventListener("hashchange", onHashChange);
+    }, []);
+
     const path = hash.split("?")[0].replace("#", "");
 
     if (!token) return <Login />;
