@@ -1,6 +1,6 @@
 import { DateTime } from "luxon";
 
-export const APP_TZ = process.env.TZ || "Asia/Tashkent";
+export const APP_TZ = "Asia/Tashkent";
 
 // YYYY-MM-DD
 export function todayISO() {
