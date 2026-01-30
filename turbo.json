@@ -16,22 +16,20 @@
                 "^lint"
             ]
         },
-        "dev": {
-            "cache": false,
-            "persistent": true
-        }
-    "globalEnv": [
-            "DATABASE_URL",
-            "DATABASE_URL1",
-            "JWT_SECRET",
-            "DB_AUTO_INIT",
-            "TZ"
-        ],
-        "globalPassThroughEnv": [
-            "DATABASE_URL",
-            "DATABASE_URL1",
-            "JWT_SECRET",
-            "DB_AUTO_INIT",
-            "TZ"
-        ]
     }
+},
+"globalEnv": [
+    "DATABASE_URL",
+    "DATABASE_URL1",
+    "JWT_SECRET",
+    "DB_AUTO_INIT",
+    "TZ"
+],
+"globalPassThroughEnv": [
+    "DATABASE_URL",
+    "DATABASE_URL1",
+    "JWT_SECRET",
+    "DB_AUTO_INIT",
+    "TZ"
+]
+}
