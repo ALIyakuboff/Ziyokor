@@ -6,6 +6,19 @@ import CommentModalWhite from "./CommentModalWhite";
 export default function TaskListCarryover({ items, onRefresh }: { items: Task[]; onRefresh: () => void }) {
     const [commentFor, setCommentFor] = useState<Task | null>(null);
 
+    async function onDone(t: Task) {
+        try {
+            await doneTask(t.id);
+            onRefresh();
+        } catch (e: any) {
+            if (e?.message === "COMMENT_REQUIRED") {
+                setCommentFor(t);
+            } else {
+                alert("Xato: " + (e?.message || "Bajarib bo'lmadi"));
+            }
+        }
+    }
+
     return (
         <>
             <div className="taskList carryoverBox">
@@ -27,7 +40,7 @@ export default function TaskListCarryover({ items, onRefresh }: { items: Task[];
                                         💬
                                     </button>
                                 )}
-                                <button className="btn mini ok" onClick={() => doneTask(t.id).then(onRefresh)}>
+                                <button className="btn mini ok" onClick={() => onDone(t)}>
                                     ✅
                                 </button>
                             </div>

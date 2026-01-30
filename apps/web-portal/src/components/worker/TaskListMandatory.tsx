@@ -28,7 +28,7 @@ export default function TaskListMandatory({ items, onRefresh }: { items: Task[];
                 {items.length === 0 && <div className="muted small">Majburiy ish yo‘q</div>}
 
                 {items.map((t) => {
-                    const commented = !!commentSavedIds[t.id];
+                    const commented = (t.comment_count !== undefined && t.comment_count > 0) || !!commentSavedIds[t.id];
                     const done = t.status === "done";
                     const disabledDone = !done && !commented;
 
