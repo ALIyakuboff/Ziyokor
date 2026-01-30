@@ -2,6 +2,10 @@
     "version": 2,
     "rewrites": [
         {
+            "source": "/socket.io/(.*)",
+            "destination": "/apps/api/api/index.ts"
+        },
+        {
             "source": "/api/(.*)",
             "destination": "/apps/api/api/index.ts"
         },

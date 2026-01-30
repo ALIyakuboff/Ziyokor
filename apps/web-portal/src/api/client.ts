@@ -1,4 +1,4 @@
-export const API_BASE = (import.meta as any).env?.VITE_API_URL || "/api";
+export const API_BASE = "/api";
 
 export async function apiFetch<T>(path: string, opts?: RequestInit): Promise<T> {
     const token = localStorage.getItem("wc_token");
