@@ -13,6 +13,7 @@ export default function TaskListNormal({ dayISO, items, onRefresh }: { dayISO: s
     const [title, setTitle] = useState("");
     const [adding, setAdding] = useState(false);
     const [commentFor, setCommentFor] = useState<Task | null>(null);
+    const [commentSavedIds, setCommentSavedIds] = useState<Record<string, boolean>>({});
 
     async function add() {
         if (!title.trim()) return;
@@ -38,12 +39,23 @@ export default function TaskListNormal({ dayISO, items, onRefresh }: { dayISO: s
         }
     }
 
+    const [pendingDoneTask, setPendingDoneTask] = useState<Task | null>(null);
+
     async function onDone(t: Task) {
+        const hasComments = (t.comment_count || 0) > 0 || !!commentSavedIds[t.id];
+
+        if (!hasComments) {
+            setPendingDoneTask(t);
+            setCommentFor(t);
+            return;
+        }
+
         try {
             await doneTask(t.id);
             onRefresh();
         } catch (e: any) {
             if (e?.message === "COMMENT_REQUIRED") {
+                setPendingDoneTask(t);
                 setCommentFor(t);
             } else {
                 alert("Xato: " + (e?.message || "Bajarib bo'lmadi"));
@@ -102,10 +114,16 @@ export default function TaskListNormal({ dayISO, items, onRefresh }: { dayISO: s
                     task={commentFor}
                     onClose={() => setCommentFor(null)}
                     onSaved={() => {
-                        onRefresh();
+                        setCommentSavedIds((s) => ({ ...s, [commentFor.id]: true }));
+
+                        if (pendingDoneTask?.id === commentFor.id) {
+                            doneTask(commentFor.id).then(onRefresh).catch(e => alert(e.message));
+                            setPendingDoneTask(null);
+                        } else {
+                            onRefresh();
+                        }
+
                         setCommentFor(null);
-                        // If it was triggered by onDone flow, we might want to try doneTask again.
-                        // But usually worker manually saves and then marks done.
                     }}
                 />
             )}

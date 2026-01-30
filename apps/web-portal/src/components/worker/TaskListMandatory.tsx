@@ -8,8 +8,13 @@ export default function TaskListMandatory({ items, onRefresh }: { items: Task[];
     const [commentFor, setCommentFor] = useState<Task | null>(null);
     const [commentSavedIds, setCommentSavedIds] = useState<Record<string, boolean>>({});
 
+    const [pendingDoneTask, setPendingDoneTask] = useState<Task | null>(null);
+
     async function onDone(t: Task) {
-        if (!commentSavedIds[t.id]) {
+        const hasComments = (t.comment_count || 0) > 0 || !!commentSavedIds[t.id];
+
+        if (!hasComments) {
+            setPendingDoneTask(t);
             setCommentFor(t);
             return;
         }
@@ -17,7 +22,10 @@ export default function TaskListMandatory({ items, onRefresh }: { items: Task[];
             await doneTask(t.id);
             onRefresh();
         } catch (e: any) {
-            if (e?.message === "COMMENT_REQUIRED") setCommentFor(t);
+            if (e?.message === "COMMENT_REQUIRED") {
+                setPendingDoneTask(t);
+                setCommentFor(t);
+            }
             else throw e;
         }
     }
@@ -49,12 +57,11 @@ export default function TaskListMandatory({ items, onRefresh }: { items: Task[];
                                 )}
                                 {t.status !== "done" && (
                                     <button
-                                        className={`btn mini ${disabledDone ? "disabled" : "ok"}`}
+                                        className={`btn mini ok`}
                                         onClick={() => onDone(t)}
-                                        disabled={disabledDone}
                                         title={disabledDone ? "Izoh yozish kerak" : "Tugatish"}
                                     >
-                                        {!disabledDone ? "OK ✅" : "✅"}
+                                        ✅
                                     </button>
                                 )}
                             </div>
@@ -69,8 +76,15 @@ export default function TaskListMandatory({ items, onRefresh }: { items: Task[];
                     onClose={() => setCommentFor(null)}
                     onSaved={() => {
                         setCommentSavedIds((s) => ({ ...s, [commentFor.id]: true }));
+
+                        if (pendingDoneTask?.id === commentFor.id) {
+                            doneTask(commentFor.id).then(onRefresh).catch(e => alert(e.message));
+                            setPendingDoneTask(null);
+                        } else {
+                            onRefresh();
+                        }
+
                         setCommentFor(null);
-                        onRefresh();
                     }}
                 />
             )}

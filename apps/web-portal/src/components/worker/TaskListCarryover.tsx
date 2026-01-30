@@ -4,14 +4,26 @@ import { doneTask, startTask } from "../../api/tasks";
 import CommentModalWhite from "./CommentModalWhite";
 
 export default function TaskListCarryover({ items, onRefresh }: { items: Task[]; onRefresh: () => void }) {
+    const [commentSavedIds, setCommentSavedIds] = useState<Record<string, boolean>>({});
     const [commentFor, setCommentFor] = useState<Task | null>(null);
 
+    const [pendingDoneTask, setPendingDoneTask] = useState<Task | null>(null);
+
     async function onDone(t: Task) {
+        const hasComments = (t.comment_count || 0) > 0 || !!commentSavedIds[t.id];
+
+        if (!hasComments) {
+            setPendingDoneTask(t);
+            setCommentFor(t);
+            return;
+        }
+
         try {
             await doneTask(t.id);
             onRefresh();
         } catch (e: any) {
             if (e?.message === "COMMENT_REQUIRED") {
+                setPendingDoneTask(t);
                 setCommentFor(t);
             } else {
                 alert("Xato: " + (e?.message || "Bajarib bo'lmadi"));
@@ -54,7 +66,15 @@ export default function TaskListCarryover({ items, onRefresh }: { items: Task[];
                     task={commentFor}
                     onClose={() => setCommentFor(null)}
                     onSaved={() => {
-                        onRefresh();
+                        setCommentSavedIds((s) => ({ ...s, [commentFor.id]: true }));
+
+                        if (pendingDoneTask?.id === commentFor.id) {
+                            doneTask(commentFor.id).then(onRefresh).catch(e => alert(e.message));
+                            setPendingDoneTask(null);
+                        } else {
+                            onRefresh();
+                        }
+
                         setCommentFor(null);
                     }}
                 />
