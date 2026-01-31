@@ -11,9 +11,6 @@
             "destination": "/api/index"
         },
         {
-            "handle": "filesystem"
-        },
-        {
             "source": "/((?!assets/|.*\\..*|api/).*)",
             "destination": "/index.html"
         }
