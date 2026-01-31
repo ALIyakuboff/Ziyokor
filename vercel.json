@@ -11,8 +11,8 @@
             "destination": "/api/index"
         },
         {
-            "source": "/(.*)",
-            "destination": "/apps/web-portal/$1"
+            "source": "/((?!assets/|.*\\..*).*)",
+            "destination": "/index.html"
         }
     ],
     "outputDirectory": "apps/web-portal/dist"
