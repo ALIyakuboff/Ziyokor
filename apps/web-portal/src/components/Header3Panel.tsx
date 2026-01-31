@@ -158,9 +158,9 @@ export default function Header3Panel({ workers, workerId, anchor }: { workers: W
                         className="linkBtn"
                         onClick={() => setProjectModalOpen(true)}
                         title="Project Topshiriq Qo'shish"
-                        style={{ fontSize: "20px", color: "#4f8dff", padding: "4px 8px", marginLeft: "2px" }}
+                        style={{ fontSize: "16px", color: "white", backgroundColor: "#4f8dff", borderRadius: "4px", padding: "4px 12px", marginLeft: "8px", fontWeight: "bold" }}
                     >
-                        <i className="fa-solid fa-briefcase"></i>
+                        Project
                     </button>
                 </div>
 

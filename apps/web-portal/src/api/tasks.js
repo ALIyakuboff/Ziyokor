@@ -9,6 +9,12 @@ export async function createWorker(full_name, phone_login) {
         body: JSON.stringify({ full_name, phone_login })
     });
 }
+export async function createProjectTask(userId, title, date) {
+    return apiFetch("/admin/project-task", {
+        method: "POST",
+        body: JSON.stringify({ user_id: userId, title, date })
+    });
+}
 export async function getWorkerWeek(workerId, anchor) {
     const q = anchor ? `?anchor=${encodeURIComponent(anchor)}` : "";
     return apiFetch(`/admin/workers/${workerId}/week${q}`);

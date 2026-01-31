@@ -50,6 +50,18 @@ export async function syncCarryovers(userId: string) {
            )`,
         [userId, activeDay]
     );
+
+    // Mark expired project tasks as missed
+    // If today > assigned_date + 60 days, and status is not done/missed, mark as missed.
+    await query(
+        `UPDATE tasks
+         SET status = 'missed'
+         WHERE user_id = $1
+           AND status != 'done' AND status != 'missed'
+           AND is_project = true
+           AND $2::date > (assigned_date + INTERVAL '60 days')`,
+        [userId, activeDay]
+    );
 }
 
 async function runCleanup() {

@@ -32,7 +32,7 @@ export default function DayCard9x16({ dayISO, group, onRefresh }) {
                     }),
                     _jsxs("div", {
                         className: "section", children: [
-                            _jsx("div", { className: "sectionTitle", children: "Mening ishlarim" }),
+                            _jsx("div", { className: "sectionTitle", children: "Oddiy ishlar" }),
                             _jsx(TaskListNormal, { dayISO: dayISO, items: group?.normal || [], onRefresh: onRefresh })
                         ]
                     }),
