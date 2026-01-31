@@ -14,5 +14,6 @@
             "source": "/(.*)",
             "destination": "/apps/web-portal/$1"
         }
-    ]
+    ],
+    "outputDirectory": "apps/web-portal/dist"
 }
