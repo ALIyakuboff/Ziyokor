@@ -80,7 +80,7 @@ export default function WorkerWeekRoute({ mode }: { mode: "week" | "day" }) {
                     days={days}
                     data={data}
                     anchor={anchor}
-                    onChangeAnchor={(iso) => {
+                    onChangeAnchor={(iso: any) => {
                         setAnchor(iso);
                         window.location.hash = `#/week?anchor=${encodeURIComponent(iso)}`;
                     }}

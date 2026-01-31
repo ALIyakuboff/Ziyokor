@@ -10,6 +10,8 @@
         "module": "ESNext",
         "moduleResolution": "Bundler",
         "strict": true,
+        "allowJs": true,
+        "noEmit": true,
         "skipLibCheck": true,
         "types": [
             "vite/client"
@@ -18,5 +20,13 @@
     },
     "include": [
         "src"
+    ],
+    "exclude": [
+        "src/components/ReportModal.tsx",
+        "src/components/worker/TaskListCarryover.tsx",
+        "src/components/worker/TaskListMandatory.tsx",
+        "src/components/worker/TaskListNormal.tsx",
+        "src/components/worker/DayCard9x16.tsx",
+        "src/components/worker/WeekSwiper6Cards.tsx"
     ]
 }

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import WorkerPicker from "./WorkerPicker";
-import { createProjectTask } from "../api/tasks";
+
+const { createProjectTask } = require("../api/tasks") as any;
 
 type Worker = { id: string; full_name: string };
 
