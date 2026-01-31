@@ -26,13 +26,17 @@
         "DATABASE_URL1",
         "JWT_SECRET",
         "DB_AUTO_INIT",
-        "TZ"
+        "TZ",
+        "ENABLE_EXPERIMENTAL_COREPACK",
+        "tz"
     ],
     "globalPassThroughEnv": [
         "DATABASE_URL",
         "DATABASE_URL1",
         "JWT_SECRET",
         "DB_AUTO_INIT",
-        "TZ"
+        "TZ",
+        "ENABLE_EXPERIMENTAL_COREPACK",
+        "tz"
     ]
 }
