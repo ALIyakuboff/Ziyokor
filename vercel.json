@@ -15,5 +15,6 @@
             "destination": "/index.html"
         }
     ],
-    "outputDirectory": "apps/web-portal/dist"
+    "outputDirectory": "apps/web-portal/dist",
+    "framework": null
 }
