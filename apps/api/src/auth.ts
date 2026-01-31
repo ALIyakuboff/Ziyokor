@@ -49,7 +49,10 @@ export async function verifyPassword(phone_login: string, password: string) {
 export function authRequired(req: Request, res: Response, next: NextFunction) {
     const h = req.headers.authorization || "";
     const token = h.startsWith("Bearer ") ? h.slice(7) : "";
-    if (!token) return res.status(401).json({ error: "UNAUTHORIZED" });
+    if (!token) {
+        res.status(401).json({ error: "UNAUTHORIZED" });
+        return;
+    }
 
     try {
         const payload = jwt.verify(token, JWT_SECRET) as any;

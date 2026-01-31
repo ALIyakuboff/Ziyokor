@@ -34,11 +34,16 @@ export default function DayCard9x16({
                 <TaskBlock items={group?.normal || []} tone="normal" onDelete={onDelete} />
             </div>
 
+            <div className="section">
+                <div className="sectionTitle" style={{ color: '#4f8dff' }}>Project</div>
+                <TaskBlock items={group?.project || []} tone="normal" onDelete={onDelete} />
+            </div>
+
             <div className="divider" />
 
             <div className="section">
                 <div className="sectionTitle" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    Carryover <AlertCircle size={16} color="red" />
+                    Carryover 🔴
                 </div>
                 <TaskBlock items={group?.carryover || []} tone="danger" onDelete={onDelete} />
             </div>

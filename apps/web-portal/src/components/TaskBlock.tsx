@@ -1,20 +1,29 @@
-import { MessageCircle, Trash2 } from "lucide-react";
-// ... (existing imports)
+import React, { useState } from "react";
+import AdminCommentModal from "./AdminCommentModal";
+import { todayISO } from "../utils/date";
 
-export default function TaskBlock({
-    // ...
+export default function TaskBlock({ items, tone, onDelete }: { items: any[]; tone: "normal" | "danger"; onDelete?: (id: string) => void }) {
+    const [viewingComments, setViewingComments] = useState<any>(null);
+    const today = todayISO();
+
+    if (!items.length) {
+        return <div className="muted small">—</div>;
+    }
+
     return (
         <div className={`taskList ${tone === "danger" ? "carryoverBox" : ""}`}>
             {items.map((t) => {
+                // Ensure date string comparison works
                 const canDelete = onDelete && t.visible_date >= today;
 
                 return (
                     <div key={t.id} className={`taskRow ${tone === "danger" ? "carryoverRow" : ""} ${t.status === "done" ? "taskDone" : ""}`}>
                         <div className="taskTitle">{t.title}</div>
+
                         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                             {(t.status === "done" || t.comment_count > 0) && (
                                 <button className="linkBtn" onClick={() => setViewingComments(t)} style={{ padding: "4px" }}>
-                                    <MessageCircle size={18} />
+                                    💬
                                 </button>
                             )}
 
@@ -23,12 +32,12 @@ export default function TaskBlock({
                                     className="linkBtn textDanger"
                                     onClick={() => {
                                         if (window.confirm("Vazifani o'chirishni tasdiqlaysizmi?")) {
-                                            onDelete(t.id);
+                                            if (onDelete) onDelete(t.id);
                                         }
                                     }}
                                     style={{ padding: "4px" }}
                                 >
-                                    <Trash2 size={18} />
+                                    🗑️
                                 </button>
                             )}
 
@@ -37,7 +46,6 @@ export default function TaskBlock({
                     </div>
                 );
             })}
-// ...
 
             {viewingComments && (
                 <AdminCommentModal

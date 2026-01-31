@@ -11,7 +11,7 @@ export function initSocketServer(httpServer: HttpServer) {
             origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",") : "*",
             credentials: true
         }
-    });
+    } as any);
 
     // Authentication middleware
     io.use(async (socket: any, next: any) => {

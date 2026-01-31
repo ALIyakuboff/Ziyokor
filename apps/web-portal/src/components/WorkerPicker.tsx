@@ -6,17 +6,20 @@ export default function WorkerPicker({
     dateISO,
     workers,
     onClose,
-    onPick
+    onPick,
+    embedded
 }: {
     dateISO: string;
     workers: Worker[];
     onClose: () => void;
     onPick: (workerId: string, action: "VIEW" | "TASK") => void;
+    embedded?: boolean;
 }) {
     const ref = useRef<HTMLDivElement | null>(null);
     const [selected, setSelected] = useState<string>("");
 
     useEffect(() => {
+        if (embedded) return;
         const onDoc = (e: MouseEvent) => {
             if (!ref.current) return;
             if (!ref.current.contains(e.target as any)) onClose();
@@ -30,7 +33,29 @@ export default function WorkerPicker({
             document.removeEventListener("mousedown", onDoc);
             document.removeEventListener("keydown", onEsc);
         };
-    }, [onClose]);
+    }, [embedded, onClose]);
+
+    if (embedded) {
+        return (
+            <div className="pickerBody">
+                <select
+                    className="select"
+                    value={selected}
+                    onChange={(e) => {
+                        setSelected(e.target.value);
+                        onPick(e.target.value, "VIEW");
+                    }}
+                >
+                    <option value="">— Ishchini tanlang —</option>
+                    {workers.map((w) => (
+                        <option key={w.id} value={w.id}>
+                            {w.full_name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+        );
+    }
 
     return (
         <div className="modalOverlay" onMouseDown={onClose} role="dialog" aria-modal="true">

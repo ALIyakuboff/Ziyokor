@@ -31,6 +31,9 @@ export async function syncCarryovers(userId: string) {
 
     // Update tasks that are past their visible_date or are today but it's past 20:00
     // Actually, visible_date < activeDay covers both cases perfectly.
+    // Update tasks that are past their visible_date or are today but it's past 20:00
+    // Logic: Move all normal/mandatory tasks.
+    // Logic: Move 'project' tasks ONLY if within 60 days of assigned_date.
     await query(
         `UPDATE tasks 
          SET carryover_from_date = visible_date,
@@ -39,7 +42,12 @@ export async function syncCarryovers(userId: string) {
          WHERE user_id = $1 
            AND status != 'done' 
            AND visible_date < $2::date
-           AND deleted_at IS NULL`,
+           AND deleted_at IS NULL
+           AND (
+             is_project = false 
+             OR 
+             (is_project = true AND $2::date <= (assigned_date + INTERVAL '60 days'))
+           )`,
         [userId, activeDay]
     );
 }
@@ -78,7 +86,7 @@ const workHoursCheck = (res: any) => {
     return null;
 };
 
-tasksRouter.get("/analytics", async (req, res, next) => {
+tasksRouter.get("/analytics", async (req: any, res: any, next: any) => {
     try {
         const me = (req as any).user as { id: string; role: string };
         const workerId = (req.query.workerId as string) || (me.role === "admin" ? "all" : me.id);
@@ -213,7 +221,7 @@ tasksRouter.get("/analytics", async (req, res, next) => {
 
 
 // Get my week (6 days)
-tasksRouter.get("/me/week", async (req, res, next) => {
+tasksRouter.get("/me/week", async (req: any, res: any, next: any) => {
     try {
         const anchor = (req.query.anchor as string) || todayISO();
         const days = weekDaysMonToSat(anchor);
@@ -237,9 +245,9 @@ tasksRouter.get("/me/week", async (req, res, next) => {
             [me.id, days]
         );
 
-        const grouped: Record<string, { mandatory: any[]; normal: any[]; carryover: any[]; progress: { done: number; total: number; percent: number } }> = {};
+        const grouped: Record<string, { mandatory: any[]; normal: any[]; project: any[]; carryover: any[]; progress: { done: number; total: number; percent: number } }> = {};
         for (const d of days) {
-            grouped[d] = { mandatory: [], normal: [], carryover: [], progress: { done: 0, total: 0, percent: 0 } };
+            grouped[d] = { mandatory: [], normal: [], project: [], carryover: [], progress: { done: 0, total: 0, percent: 0 } };
         }
 
         for (const t of r.rows) {
@@ -253,6 +261,7 @@ tasksRouter.get("/me/week", async (req, res, next) => {
             if (t.status === "done") grouped[d].progress.done++;
 
             if (t.is_mandatory) grouped[d].mandatory.push(t);
+            else if (t.is_project) grouped[d].project.push(t);
             else if (t.is_carryover) grouped[d].carryover.push(t);
             else grouped[d].normal.push(t);
         }
@@ -269,7 +278,7 @@ tasksRouter.get("/me/week", async (req, res, next) => {
 });
 
 // Create my normal task
-tasksRouter.post("/me", async (req, res, next) => {
+tasksRouter.post("/me", async (req: any, res: any, next: any) => {
     try {
         const me = (req as any).user as { id: string };
 
@@ -326,7 +335,7 @@ tasksRouter.post("/me", async (req, res, next) => {
 });
 
 // Start task
-tasksRouter.patch("/:id/start", async (req, res, next) => {
+tasksRouter.patch("/:id/start", async (req: any, res: any, next: any) => {
     try {
         const me = (req as any).user as { id: string };
         const id = req.params.id;
@@ -370,7 +379,7 @@ tasksRouter.patch("/:id/start", async (req, res, next) => {
 });
 
 // Done task (mandatory requires comment)
-tasksRouter.patch("/:id/done", async (req, res, next) => {
+tasksRouter.patch("/:id/done", async (req: any, res: any, next: any) => {
     try {
         const me = (req as any).user as { id: string };
         const id = req.params.id;
@@ -421,7 +430,7 @@ tasksRouter.patch("/:id/done", async (req, res, next) => {
 });
 
 // Delete my normal task (cannot delete mandatory)
-tasksRouter.delete("/:id", async (req, res, next) => {
+tasksRouter.delete("/:id", async (req: any, res: any, next: any) => {
     try {
         const me = (req as any).user as { id: string };
         const id = req.params.id;
@@ -451,7 +460,7 @@ tasksRouter.delete("/:id", async (req, res, next) => {
     }
 });
 
-tasksRouter.get("/:id/comments", async (req, res, next) => {
+tasksRouter.get("/:id/comments", async (req: any, res: any, next: any) => {
     try {
         const me = (req as any).user as { id: string; role: string };
         const id = req.params.id;
@@ -478,7 +487,7 @@ tasksRouter.get("/:id/comments", async (req, res, next) => {
     }
 });
 
-tasksRouter.put("/:id/comments", async (req, res, next) => {
+tasksRouter.put("/:id/comments", async (req: any, res: any, next: any) => {
     try {
         const me = (req as any).user as { id: string };
         const id = req.params.id;
@@ -521,7 +530,7 @@ tasksRouter.put("/:id/comments", async (req, res, next) => {
     }
 });
 
-tasksRouter.post("/:id/comments", async (req, res, next) => {
+tasksRouter.post("/:id/comments", async (req: any, res: any, next: any) => {
     try {
         const me = (req as any).user as { id: string };
         const id = req.params.id;
@@ -562,7 +571,8 @@ tasksRouter.post("/:id/comments", async (req, res, next) => {
 });
 
 // GET my report (for PDF)
-tasksRouter.get("/me/report", async (req, res, next) => {
+tasksRouter.get("/me/report", async (req: any, res: any, next: any) => {
+
     try {
         const qv = mustParse(
             z.object({

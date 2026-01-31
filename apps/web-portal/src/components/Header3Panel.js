@@ -10,6 +10,7 @@ import CreateWorkerModal from "./CreateWorkerModal";
 import DayMandatoryModal from "./DayMandatoryModal";
 import RecurringTaskModal from "./RecurringTaskModal";
 import ReportModal from "./ReportModal";
+import ProjectTaskModal from "./ProjectTaskModal";
 import { todayISO } from "../utils/date";
 export default function Header3Panel({ workers, workerId, anchor }) {
     const { user, logout } = useSession();
@@ -29,6 +30,7 @@ export default function Header3Panel({ workers, workerId, anchor }) {
     // Chart range toggle
     const [range, setRange] = useState("week");
     const [pdfModalOpen, setPdfModalOpen] = useState(false);
+    const [projectModalOpen, setProjectModalOpen] = useState(false);
     const adminName = user?.full_name || "Admin";
     // Find selected worker name if workerId is provided
     const selectedWorker = useMemo(() => {
@@ -61,7 +63,7 @@ export default function Header3Panel({ workers, workerId, anchor }) {
                             else {
                                 window.location.hash = `#/worker?workerId=${encodeURIComponent(wid)}&anchor=${encodeURIComponent(selectedDate)}`;
                             }
-                        } })), _jsxs("div", { className: "kpiBox", style: { position: "relative", alignItems: "center" }, children: [_jsxs("div", { className: "kpi", children: [_jsx("div", { className: "kpiLabel", children: "Sana" }), _jsx("div", { className: "kpiValue", children: selectedDate })] }), _jsxs("div", { className: "kpi", children: [_jsx("div", { className: "kpiLabel", children: "Range" }), _jsx("div", { className: "kpiValue", children: range })] }), _jsx("button", { className: "linkBtn", onClick: () => setPdfModalOpen(true), title: "Hisobot (PDF)", style: { fontSize: "22px", color: "#41d17a", padding: "4px 8px", marginLeft: "4px" }, children: _jsx("i", { className: "fa-solid fa-file-pdf" }) })] }), _jsx("button", { className: "btn mini", onClick: logout, children: "Chiqish" })] }), pdfModalOpen && (_jsx(ReportModal, { onClose: () => setPdfModalOpen(false), defaultDate: selectedDate })), _jsxs("div", { className: "headerPanel", children: [_jsxs("div", { className: "rowBetween", children: [_jsx("div", { className: "panelTitle", children: "Unumdorlik (Completion %)" }), _jsx("div", { className: "seg", children: ["week", "month", "year"].map((r) => (_jsx("button", { className: `segBtn ${range === r ? "segOn" : ""}`, onClick: () => setRange(r), children: r === "week" ? "Hafta" : r === "month" ? "Oy" : "Yil" }, r))) })] }), _jsx(ProductivityChart, { range: range, anchor: selectedDate, workerId: workerId })] }), _jsxs("div", { className: "headerPanel", children: [_jsxs("div", { className: "rowBetween", children: [_jsx("div", { className: "panelTitle", children: "Majburiy (Compliance %)" }), _jsx("div", { className: "seg", children: ["week", "month", "year"].map((r) => (_jsx("button", { className: `segBtn ${range === r ? "segOn" : ""}`, onClick: () => setRange(r), children: r === "week" ? "Hafta" : r === "month" ? "Oy" : "Yil" }, r))) })] }), _jsx(ComplianceChart, { range: range, anchor: selectedDate, workerId: workerId })] }), recurOpen && (_jsx(RecurringTaskModal, { workers: workers, onClose: () => setRecurOpen(false), onSuccess: () => {
+                        } })), _jsxs("div", { className: "kpiBox", style: { position: "relative", alignItems: "center" }, children: [_jsxs("div", { className: "kpi", children: [_jsx("div", { className: "kpiLabel", children: "Sana" }), _jsx("div", { className: "kpiValue", children: selectedDate })] }), _jsxs("div", { className: "kpi", children: [_jsx("div", { className: "kpiLabel", children: "Range" }), _jsx("div", { className: "kpiValue", children: range })] }), _jsx("button", { className: "linkBtn", onClick: () => setPdfModalOpen(true), title: "Hisobot (PDF)", style: { fontSize: "22px", color: "#41d17a", padding: "4px 8px", marginLeft: "4px" }, children: _jsx("i", { className: "fa-solid fa-file-pdf" }) }), _jsx("button", { className: "linkBtn", onClick: () => setProjectModalOpen(true), title: "Project Topshiriq Qo'shish", style: { fontSize: "20px", color: "#4f8dff", padding: "4px 8px", marginLeft: "2px" }, children: _jsx("i", { className: "fa-solid fa-briefcase" }) })] }), _jsx("button", { className: "btn mini", onClick: logout, children: "Chiqish" })] }), pdfModalOpen && (_jsx(ReportModal, { onClose: () => setPdfModalOpen(false), defaultDate: selectedDate })), _jsxs("div", { className: "headerPanel", children: [_jsxs("div", { className: "rowBetween", children: [_jsx("div", { className: "panelTitle", children: "Unumdorlik (Completion %)" }), _jsx("div", { className: "seg", children: ["week", "month", "year"].map((r) => (_jsx("button", { className: `segBtn ${range === r ? "segOn" : ""}`, onClick: () => setRange(r), children: r === "week" ? "Hafta" : r === "month" ? "Oy" : "Yil" }, r))) })] }), _jsx(ProductivityChart, { range: range, anchor: selectedDate, workerId: workerId })] }), _jsxs("div", { className: "headerPanel", children: [_jsxs("div", { className: "rowBetween", children: [_jsx("div", { className: "panelTitle", children: "Majburiy (Compliance %)" }), _jsx("div", { className: "seg", children: ["week", "month", "year"].map((r) => (_jsx("button", { className: `segBtn ${range === r ? "segOn" : ""}`, onClick: () => setRange(r), children: r === "week" ? "Hafta" : r === "month" ? "Oy" : "Yil" }, r))) })] }), _jsx(ComplianceChart, { range: range, anchor: selectedDate, workerId: workerId })] }), recurOpen && (_jsx(RecurringTaskModal, { workers: workers, onClose: () => setRecurOpen(false), onSuccess: () => {
                     setRecurOpen(false);
                     window.location.reload();
                 } })), createOpen && (_jsx(CreateWorkerModal, { onClose: () => setCreateOpen(false), onSuccess: () => {
@@ -70,5 +72,9 @@ export default function Header3Panel({ workers, workerId, anchor }) {
                 } })), mandatoryModalOpen && targetWorker && (_jsx(DayMandatoryModal, { workerId: targetWorker.id, workerName: targetWorker.name, date: selectedDate, onClose: () => setMandatoryModalOpen(false), onSuccess: () => {
                     setMandatoryModalOpen(false);
                     alert("Vazifalar muvaffaqiyatli saqlandi");
+                } })), projectModalOpen && (_jsx(ProjectTaskModal, { workers: workers, defaultDate: selectedDate, onClose: () => setProjectModalOpen(false), onSuccess: () => {
+                    setProjectModalOpen(false);
+                    alert("Project topshiriq qo'shildi");
+                    window.location.reload();
                 } }))] }));
 }

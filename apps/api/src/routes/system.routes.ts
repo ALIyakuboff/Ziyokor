@@ -11,7 +11,7 @@ export const systemRouter = Router();
 // Manual trigger endpoints (admin only)
 systemRouter.use(authRequired, requireRole("admin"));
 
-systemRouter.post("/jobs/generate-mandatory", async (req, res, next) => {
+systemRouter.post("/jobs/generate-mandatory", async (req: any, res: any, next: any) => {
     try {
         const date = (req.query.date as string) || todayISO();
         await generateMandatoryJob(date);
@@ -21,7 +21,7 @@ systemRouter.post("/jobs/generate-mandatory", async (req, res, next) => {
     }
 });
 
-systemRouter.post("/jobs/close-day", async (req, res, next) => {
+systemRouter.post("/jobs/close-day", async (req: any, res: any, next: any) => {
     try {
         const date = (req.query.date as string) || todayISO();
         await closeDayJob(date);
@@ -31,7 +31,7 @@ systemRouter.post("/jobs/close-day", async (req, res, next) => {
     }
 });
 
-systemRouter.post("/jobs/purge-3months", async (_req, res, next) => {
+systemRouter.post("/jobs/purge-3months", async (_req: any, res: any, next: any) => {
     try {
         const result = await purge3MonthsJob();
         res.json({ ok: true, result });

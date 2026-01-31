@@ -1,4 +1,5 @@
-export const API_BASE = import.meta.env?.VITE_API_URL || "http://localhost:8080";
+const ENV_API_URL = import.meta.env.VITE_API_URL;
+export const API_BASE = ENV_API_URL ? `${ENV_API_URL}/api` : "/api";
 export async function apiFetch(path, opts) {
     const token = localStorage.getItem("wc_token");
     const res = await fetch(`${API_BASE}${path}`, {

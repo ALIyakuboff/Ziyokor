@@ -5,7 +5,7 @@ import { signToken, verifyPassword } from "../auth";
 
 export const authRouter = Router();
 
-authRouter.post("/login", async (req, res, next) => {
+authRouter.post("/login", async (req: any, res: any, next: any) => {
     try {
         const body = mustParse(
             z.object({

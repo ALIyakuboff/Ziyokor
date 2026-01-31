@@ -16,7 +16,7 @@ export const adminRouter = Router();
 adminRouter.use(authRequired);
 
 // Create Recurring Task Template (Continuing Mandatory)
-adminRouter.post("/templates", requireRole("admin"), async (req, res, next) => {
+adminRouter.post("/templates", requireRole("admin"), async (req: any, res: any, next: any) => {
     try {
         const body = mustParse(
             z.object({
@@ -64,7 +64,7 @@ adminRouter.post("/templates", requireRole("admin"), async (req, res, next) => {
 // Better: Move analytics to tasks.routes.ts and make it robust there.
 
 // Workers list (faqat ism)
-adminRouter.get("/workers", requireRole("admin"), async (_req, res, next) => {
+adminRouter.get("/workers", requireRole("admin"), async (_req: any, res: any, next: any) => {
     try {
         const r = await query<{ id: string; full_name: string }>(
             "SELECT id, full_name FROM users WHERE (role='worker' OR role='admin') AND is_active=true ORDER BY full_name ASC"
@@ -76,7 +76,7 @@ adminRouter.get("/workers", requireRole("admin"), async (_req, res, next) => {
 });
 
 // Create worker (password = last4)
-adminRouter.post("/workers", requireRole("admin"), async (req, res, next) => {
+adminRouter.post("/workers", requireRole("admin"), async (req: any, res: any, next: any) => {
     try {
         const body = mustParse(
             z.object({
@@ -110,7 +110,7 @@ adminRouter.post("/workers", requireRole("admin"), async (req, res, next) => {
 });
 
 // Deactivate worker
-adminRouter.patch("/workers/:id/deactivate", requireRole("admin"), async (req, res, next) => {
+adminRouter.patch("/workers/:id/deactivate", requireRole("admin"), async (req: any, res: any, next: any) => {
     try {
         const id = req.params.id;
         await query("UPDATE users SET is_active=false WHERE id=$1", [id]);
@@ -121,7 +121,7 @@ adminRouter.patch("/workers/:id/deactivate", requireRole("admin"), async (req, r
 });
 
 // Admin: worker week view (6 cards)
-adminRouter.get("/workers/:id/week", requireRole("admin"), async (req, res, next) => {
+adminRouter.get("/workers/:id/week", requireRole("admin"), async (req: any, res: any, next: any) => {
     try {
         const workerId = req.params.id;
         const anchor = (req.query.anchor as string) || undefined;
@@ -151,10 +151,10 @@ adminRouter.get("/workers/:id/week", requireRole("admin"), async (req, res, next
 
         const grouped: Record<
             string,
-            { mandatory: any[]; normal: any[]; carryover: any[]; progress: { done: number; total: number; percent: number } }
+            { mandatory: any[]; normal: any[]; project: any[]; carryover: any[]; progress: { done: number; total: number; percent: number } }
         > = {};
         for (const d of days) {
-            grouped[d] = { mandatory: [], normal: [], carryover: [], progress: { done: 0, total: 0, percent: 0 } };
+            grouped[d] = { mandatory: [], normal: [], project: [], carryover: [], progress: { done: 0, total: 0, percent: 0 } };
         }
 
         for (const t of r.rows) {
@@ -164,6 +164,7 @@ adminRouter.get("/workers/:id/week", requireRole("admin"), async (req, res, next
             if (t.status === "done") grouped[d].progress.done++;
 
             if (t.is_mandatory) grouped[d].mandatory.push(t);
+            else if (t.is_project) grouped[d].project.push(t);
             else if (t.is_carryover) grouped[d].carryover.push(t);
             else grouped[d].normal.push(t);
         }
@@ -180,7 +181,7 @@ adminRouter.get("/workers/:id/week", requireRole("admin"), async (req, res, next
 });
 
 // Admin: one-off mandatory create (for a specific day)
-adminRouter.post("/mandatory/one-off", async (req, res, next) => {
+adminRouter.post("/mandatory/one-off", async (req: any, res: any, next: any) => {
     try {
         const body = mustParse(
             z.object({
@@ -217,7 +218,7 @@ adminRouter.post("/mandatory/one-off", async (req, res, next) => {
 });
 
 // Admin: delete task (soft delete) - restricted to today and future
-adminRouter.delete("/tasks/:id", requireRole("admin"), async (req, res, next) => {
+adminRouter.delete("/tasks/:id", requireRole("admin"), async (req: any, res: any, next: any) => {
     try {
         const id = req.params.id;
         const today = todayISO();
@@ -250,6 +251,43 @@ adminRouter.delete("/tasks/:id", requireRole("admin"), async (req, res, next) =>
     }
 });
 
+// Admin: project task create
+adminRouter.post("/project-task", requireRole("admin"), async (req: any, res: any, next: any) => {
+    try {
+        const body = mustParse(
+            z.object({
+                user_id: z.string().min(1),
+                title: z.string().min(1).max(200),
+                date: zISODate
+            }),
+            req.body
+        );
+
+        const closed = await query("SELECT date FROM day_closures WHERE date=$1 LIMIT 1", [body.date]);
+        if (closed.rows.length) return res.status(403).json({ error: "DAY_CLOSED" });
+
+        const ins = await query<any>(
+            `INSERT INTO tasks
+        (user_id, title, is_mandatory, is_project, status, assigned_date, visible_date,
+         is_carryover, carryover_from_date, template_id, one_off_by_admin,
+         created_by, created_by_id)
+       VALUES
+        ($1,$2,false,true,'pending',$3,$3,false,NULL,NULL,true,'admin',NULL)
+       RETURNING *`,
+            [body.user_id, body.title, body.date]
+        );
+
+        const task = ins.rows[0];
+
+        // Emit real-time event to the worker
+        emitToUser(body.user_id, "task:created", { task });
+
+        res.json({ task });
+    } catch (e) {
+        next(e);
+    }
+});
+
 /**
  * ✅ NEW: Analytics endpoint for charts
  * GET /admin/analytics?range=week|month|year&anchor=YYYY-MM-DD
@@ -261,7 +299,7 @@ adminRouter.delete("/tasks/:id", requireRole("admin"), async (req, res, next) =>
  *   totals: { ...same aggregated... }
  * }
  */
-adminRouter.get("/analytics", async (req, res, next) => {
+adminRouter.get("/analytics", async (req: any, res: any, next: any) => {
     console.log("!!! HIT ANALYTICS ROUTE !!!");
     try {
         const me = (req as any).user as { id: string; role: string };
@@ -455,7 +493,7 @@ adminRouter.get("/analytics", async (req, res, next) => {
  * ✅ NEW: Full report data for PDF
  * GET /admin/reports/full?start=YYYY-MM-DD&end=YYYY-MM-DD
  */
-adminRouter.get("/reports/full", requireRole("admin"), async (req, res, next) => {
+adminRouter.get("/reports/full", requireRole("admin"), async (req: any, res: any, next: any) => {
     try {
         const qv = mustParse(
             z.object({

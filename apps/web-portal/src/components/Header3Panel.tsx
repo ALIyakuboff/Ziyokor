@@ -9,6 +9,7 @@ import CreateWorkerModal from "./CreateWorkerModal";
 import DayMandatoryModal from "./DayMandatoryModal";
 import RecurringTaskModal from "./RecurringTaskModal";
 import ReportModal from "./ReportModal";
+import ProjectTaskModal from "./ProjectTaskModal";
 import { todayISO } from "../utils/date";
 
 type Worker = { id: string; full_name: string };
@@ -34,6 +35,7 @@ export default function Header3Panel({ workers, workerId, anchor }: { workers: W
     // Chart range toggle
     const [range, setRange] = useState<"week" | "month" | "year">("week");
     const [pdfModalOpen, setPdfModalOpen] = useState(false);
+    const [projectModalOpen, setProjectModalOpen] = useState(false);
 
     const adminName = user?.full_name || "Admin";
 
@@ -151,6 +153,15 @@ export default function Header3Panel({ workers, workerId, anchor }: { workers: W
                     >
                         <i className="fa-solid fa-file-pdf"></i>
                     </button>
+                    {/* Project Task Button */}
+                    <button
+                        className="linkBtn"
+                        onClick={() => setProjectModalOpen(true)}
+                        title="Project Topshiriq Qo'shish"
+                        style={{ fontSize: "20px", color: "#4f8dff", padding: "4px 8px", marginLeft: "2px" }}
+                    >
+                        <i className="fa-solid fa-briefcase"></i>
+                    </button>
                 </div>
 
                 <button className="btn mini" onClick={logout}>Chiqish</button>
@@ -223,6 +234,19 @@ export default function Header3Panel({ workers, workerId, anchor }: { workers: W
                     onSuccess={() => {
                         setMandatoryModalOpen(false);
                         alert("Vazifalar muvaffaqiyatli saqlandi");
+                    }}
+                />
+            )}
+
+            {projectModalOpen && (
+                <ProjectTaskModal
+                    workers={workers}
+                    defaultDate={selectedDate}
+                    onClose={() => setProjectModalOpen(false)}
+                    onSuccess={() => {
+                        setProjectModalOpen(false);
+                        alert("Project topshiriq qo'shildi");
+                        window.location.reload();
                     }}
                 />
             )}

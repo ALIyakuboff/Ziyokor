@@ -7,6 +7,10 @@ import { normalizePhoneDigits, last4Digits } from "./utils/phone";
 // Force DATE (1082) to be returned as string "YYYY-MM-DD"
 types.setTypeParser(1082, (str) => str);
 
+// Parse BIGINT as int (safe for our IDs, but be careful with huge numbers)
+// 20 = BIGINT (int8)
+types.setTypeParser(20, (str: string) => parseInt(str, 10));
+
 console.log("[db] Connecting to:", process.env.DATABASE_URL?.split("@")[1] || "unknown host");
 
 export const pool = new Pool({
