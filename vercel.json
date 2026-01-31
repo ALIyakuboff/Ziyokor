@@ -11,7 +11,10 @@
             "destination": "/api/index"
         },
         {
-            "source": "/((?!assets/|.*\\..*).*)",
+            "handle": "filesystem"
+        },
+        {
+            "source": "/((?!assets/|.*\\..*|api/).*)",
             "destination": "/index.html"
         }
     ],
