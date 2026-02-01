@@ -1,0 +1,30 @@
+services:
+  # API Service (Backend) - Node.js
+  - type: web
+    name: ziyokor-api
+    runtime: node
+    plan: free
+    buildCommand: pnpm install && pnpm run build --filter=work-control-api
+    startCommand: node apps/api/dist/main.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: DATABASE_URL
+        sync: false # Render panelidan kiritasiz
+      - key: JWT_SECRET
+        sync: false # Render panelidan kiritasiz
+
+  # Web Portal (Frontend) - Static Site
+  - type: static
+    name: ziyokor-web
+    plan: free
+    buildCommand: pnpm install && pnpm run build --filter=work-control-portal
+    staticPublishPath: apps/web-portal/dist
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: ziyokor-api
+          property: url
