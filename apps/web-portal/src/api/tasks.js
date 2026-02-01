@@ -47,6 +47,12 @@ export async function startTask(id) {
 export async function doneTask(id) {
     return apiFetch(`/tasks/${id}/done`, { method: "PATCH" });
 }
+export async function updateTaskStatus(id, status) {
+    return apiFetch(`/tasks/${id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status })
+    });
+}
 export async function deleteTask(id) {
     return apiFetch(`/tasks/${id}`, { method: "DELETE" });
 }

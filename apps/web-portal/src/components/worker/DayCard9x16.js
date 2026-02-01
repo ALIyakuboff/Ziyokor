@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import ProgressRing from "./ProgressRing";
 import TaskListMandatory from "./TaskListMandatory";
 import TaskListNormal from "./TaskListNormal";
+import TaskListProject from "./TaskListProject";
 import TaskListCarryover from "./TaskListCarryover";
 import { weekdayUz } from "../../utils/weekday";
 import { formatDateShort } from "../../utils/date";
@@ -39,7 +40,7 @@ export default function DayCard9x16({ dayISO, group, onRefresh }) {
                     _jsxs("div", {
                         className: "section", children: [
                             _jsx("div", { className: "sectionTitle", style: { color: "#4f8dff" }, children: "Project" }),
-                            _jsx(TaskListNormal, { dayISO: dayISO, items: group?.project || [], onRefresh: onRefresh, hideAdd: true })
+                            _jsx(TaskListProject, { items: group?.project || [], onRefresh: onRefresh })
                         ]
                     }),
                     _jsx("div", { className: "divider" }),
