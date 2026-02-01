@@ -14,15 +14,13 @@ services:
       - key: JWT_SECRET
         sync: false # Render panelidan kiritasiz
 
-staticSites:
-  # Web Portal (Frontend) - Static Site
-  - name: ziyokor-web
+  # Web Portal (Frontend) - Served as Node Service (bypassing staticSites issue)
+  - type: web
+    name: ziyokor-web
+    runtime: node
+    plan: free
     buildCommand: pnpm install && pnpm run build --filter=work-control-portal
-    publishPath: apps/web-portal/dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    startCommand: npx serve -s apps/web-portal/dist -l $PORT
     envVars:
       - key: NODE_VERSION
         value: "20"
