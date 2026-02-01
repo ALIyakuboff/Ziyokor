@@ -14,11 +14,11 @@ services:
       - key: JWT_SECRET
         sync: false # Render panelidan kiritasiz
 
+staticSites:
   # Web Portal (Frontend) - Static Site
-  - type: site
-    name: ziyokor-web
+  - name: ziyokor-web
     buildCommand: pnpm install && pnpm run build --filter=work-control-portal
-    publishDir: apps/web-portal/dist
+    publishPath: apps/web-portal/dist
     envVars:
       - key: NODE_VERSION
         value: 20
