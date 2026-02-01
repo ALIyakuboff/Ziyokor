@@ -9,8 +9,8 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "jspdf": "^4.0.0",
-        "jspdf-autotable": "^5.0.7",
+        "jspdf": "2.5.1",
+        "jspdf-autotable": "3.8.2",
         "lucide-react": "^0.563.0",
         "luxon": "^3.5.0",
         "react": "^18.3.1",

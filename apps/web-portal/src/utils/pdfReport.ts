@@ -1,4 +1,6 @@
+// @ts-ignore
 import jsPDF from "jspdf";
+// @ts-ignore
 import autoTable from "jspdf-autotable";
 
 /**
@@ -61,7 +63,7 @@ export async function generateWorkerPDFReport(
             2: { cellWidth: "auto" },
             3: { cellWidth: 30 }
         },
-        didDrawPage: (data) => {
+        didDrawPage: (data: any) => {
             // Footer
             const str = "Sahifa " + doc.getNumberOfPages();
             doc.setFontSize(10);

@@ -11,5 +11,13 @@ export default defineConfig({
                 changeOrigin: true
             }
         }
+    },
+    optimizeDeps: {
+        include: ["jspdf", "jspdf-autotable"]
+    },
+    build: {
+        commonjsOptions: {
+            transformMixedEsModules: true
+        }
     }
 });

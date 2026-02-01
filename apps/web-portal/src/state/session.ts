@@ -18,7 +18,13 @@ const LS_USER = "wc_user";
 export function useSession(): SessionCtx {
     const token = localStorage.getItem(LS_TOKEN);
     const userStr = localStorage.getItem(LS_USER);
-    const user = userStr ? (JSON.parse(userStr) as SessionUser) : null;
+    let user: SessionUser | null = null;
+    try {
+        user = userStr ? (JSON.parse(userStr) as SessionUser) : null;
+    } catch (e) {
+        console.error("Failed to parse user session", e);
+        localStorage.removeItem(LS_USER);
+    }
 
     return {
         token,

@@ -32,8 +32,10 @@ export function createApp() {
     app.use("/api/system", systemRouter);
 
     // 404
-    app.use((_req: express.Request, res: express.Response) => res.status(404).json({ error: "NOT_FOUND" }));
+    app.use((_req: express.Request, res: express.Response) => { res.status(404).json({ error: "NOT_FOUND" }); });
 
+    // error handler
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     // error handler
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
