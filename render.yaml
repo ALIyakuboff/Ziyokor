@@ -15,12 +15,10 @@ services:
         sync: false # Render panelidan kiritasiz
 
   # Web Portal (Frontend) - Static Site
-  - type: web
+  - type: site
     name: ziyokor-web
-    env: static
-    plan: free
     buildCommand: pnpm install && pnpm run build --filter=work-control-portal
-    staticPublishPath: apps/web-portal/dist
+    publishDir: apps/web-portal/dist
     envVars:
       - key: NODE_VERSION
         value: 20
