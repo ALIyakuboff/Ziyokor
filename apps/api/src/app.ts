@@ -18,7 +18,7 @@ export function createApp() {
     app.use(helmet());
     app.use(
         cors({
-            origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",") : true,
+            origin: true, // Allow all origins for now to fix login
             credentials: true
         })
     );
