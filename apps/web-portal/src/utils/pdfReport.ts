@@ -7,11 +7,9 @@ export async function generateWorkerPDFReport(
     period: string,
     data: { worker_name: string; tasks: any[] }[]
 ) {
-    // Dynamic import to prevent "require is not defined" error on initial load
+    // Access jsPDF from the global window object (loaded via CDN)
     // @ts-ignore
-    const jsPDF = (await import("jspdf")).default;
-    // @ts-ignore
-    const autoTable = (await import("jspdf-autotable")).default;
+    const { jsPDF } = window.jspdf;
 
     const doc = new jsPDF();
 
@@ -52,7 +50,9 @@ export async function generateWorkerPDFReport(
         }
     });
 
-    autoTable(doc, {
+    // autoTable is automatically registered to jsPDF instance when loaded via CDN
+    // @ts-ignore
+    doc.autoTable({
         head: [["Ishchi", "Sana", "Vazifa mazmuni", "Holat"]],
         body: tableRows,
         startY: startY,
