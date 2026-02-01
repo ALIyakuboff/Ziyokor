@@ -1,7 +1,7 @@
 {
     "version": 2,
-    "buildCommand": "pnpm install && pnpm run build --filter=work-control-portal",
-    "installCommand": "pnpm install --no-frozen-lockfile",
+    "buildCommand": "npm install && npm run build --workspace=apps/web-portal",
+    "installCommand": "npm install --legacy-peer-deps",
     "outputDirectory": "apps/web-portal/dist",
     "framework": null,
     "rewrites": [
