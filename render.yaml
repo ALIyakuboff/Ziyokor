@@ -19,9 +19,13 @@ staticSites:
   - name: ziyokor-web
     buildCommand: pnpm install && pnpm run build --filter=work-control-portal
     publishPath: apps/web-portal/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
     envVars:
       - key: NODE_VERSION
-        value: 20
+        value: "20"
       - key: VITE_API_URL
         fromService:
           type: web
