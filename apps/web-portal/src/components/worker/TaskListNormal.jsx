@@ -4,7 +4,7 @@ import CommentModalWhite from "./CommentModalWhite";
 import TaskTimer from "./TaskTimer";
 import { createMyTask, doneTask, deleteTask } from "../../api/tasks";
 
-export default function TaskListNormal({ dayISO, items, onRefresh }) {
+export default function TaskListNormal({ dayISO, items, onRefresh, hideAdd = false }) {
     const [newItem, setNewItem] = useState("");
     const [loading, setLoading] = useState(false);
     const [commentFor, setCommentFor] = useState(null);
@@ -30,9 +30,8 @@ export default function TaskListNormal({ dayISO, items, onRefresh }) {
     };
 
     const remove = (id) => {
-        if (window.confirm("O'chirishni tasdiqlaysizmi?")) {
-            deleteTask(id).then(onRefresh).catch((e) => alert(e.message));
-        }
+        // Instant delete without confirmation
+        deleteTask(id).then(onRefresh).catch((e) => alert(e.message));
     };
 
     const onDone = (t) => {
@@ -46,20 +45,22 @@ export default function TaskListNormal({ dayISO, items, onRefresh }) {
 
     return (
         <div className="taskList">
-            <div className="addTaskRow">
-                <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Yangi vazifa..."
-                    value={newItem}
-                    onChange={(e) => setNewItem(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    disabled={loading}
-                />
-                <button className="btn primary" onClick={onAdd} disabled={loading}>
-                    <Plus size={18} />
-                </button>
-            </div>
+            {!hideAdd && (
+                <div className="addTaskRow">
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Yangi vazifa..."
+                        value={newItem}
+                        onChange={(e) => setNewItem(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        disabled={loading}
+                    />
+                    <button className="btn primary" onClick={onAdd} disabled={loading}>
+                        <Plus size={18} />
+                    </button>
+                </div>
+            )}
 
             {items.length === 0 && <div className="muted small">Hozircha ish yo‘q</div>}
 

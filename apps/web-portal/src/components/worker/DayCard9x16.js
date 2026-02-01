@@ -39,7 +39,7 @@ export default function DayCard9x16({ dayISO, group, onRefresh }) {
                     _jsxs("div", {
                         className: "section", children: [
                             _jsx("div", { className: "sectionTitle", style: { color: "#4f8dff" }, children: "Project" }),
-                            _jsx(TaskListNormal, { dayISO: dayISO, items: group?.project || [], onRefresh: onRefresh })
+                            _jsx(TaskListNormal, { dayISO: dayISO, items: group?.project || [], onRefresh: onRefresh, hideAdd: true })
                         ]
                     }),
                     _jsx("div", { className: "divider" }),
