@@ -54,7 +54,7 @@ export default function ProjectTaskModal({ workers, onClose, onSuccess, defaultD
                             workers={workers}
                             dateISO={defaultDate || ""}
                             onClose={onClose}
-                            onPick={(wid) => handleWorkerPick(wid)}
+                            onPick={(wid, _action) => handleWorkerPick(wid)}
                             embedded={true}
                         />
                     </div>
