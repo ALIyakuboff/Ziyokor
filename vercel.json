@@ -1,6 +1,9 @@
 {
     "version": 2,
+    "buildCommand": "pnpm install && pnpm run build --filter=work-control-portal",
     "installCommand": "pnpm install --no-frozen-lockfile",
+    "outputDirectory": "apps/web-portal/dist",
+    "framework": null,
     "rewrites": [
         {
             "source": "/socket.io/(.*)",
@@ -15,6 +18,10 @@
             "destination": "/index.html"
         }
     ],
-    "outputDirectory": "apps/web-portal/dist",
-    "framework": null
+    "crons": [
+        {
+            "path": "/api/cron/close-day",
+            "schedule": "0 0 * * *"
+        }
+    ]
 }

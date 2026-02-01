@@ -1,13 +1,21 @@
+```
 import { Router } from "express";
-import { z } from "zod";
 import bcrypt from "bcryptjs";
-import { DateTime } from "luxon";
-import { authRequired, requireRole } from "../auth";
+import { z } from "zod";
+import { authRequired, roleRequired } from "../auth";
 import { mustParse, zISODate } from "../utils/validate";
 import { query } from "../db";
-import { normalizePhoneDigits, last4Digits } from "../utils/phone";
-import { weekDaysMonToSat, APP_TZ, todayISO } from "../utils/date";
-import { emitToUser } from "../socket";
+import { todayISO, weekDaysMonToSat, APP_TZ } from "../utils/date";
+import { DateTime } from "luxon";
+
+// Socket.IO is optional (not available in serverless)
+let emitToUser: any = () => {};
+try {
+    const socketModule = require("../socket");
+    emitToUser = socketModule.emitToUser;
+} catch (e) {
+    console.log("[admin] Socket.IO not available (serverless mode)");
+}
 import { syncCarryovers } from "./tasks.routes";
 import { generateMandatoryJob } from "../cron/generateMandatory";
 
@@ -34,9 +42,9 @@ adminRouter.post("/templates", requireRole("admin"), async (req: any, res: any, 
         for (const uid of body.user_ids) {
             for (const title of body.titles) {
                 await query(
-                    `INSERT INTO mandatory_task_templates 
-                     (user_id, title, recurrence_type, is_active, created_by_admin_id, is_mandatory)
-                     VALUES ($1, $2, $3, true, $4, $5)`,
+                    `INSERT INTO mandatory_task_templates
+    (user_id, title, recurrence_type, is_active, created_by_admin_id, is_mandatory)
+VALUES($1, $2, $3, true, $4, $5)`,
                     [uid, title, body.recurrence, me.id, body.is_mandatory]
                 );
                 createdCount++;
@@ -96,8 +104,8 @@ adminRouter.post("/workers", requireRole("admin"), async (req: any, res: any, ne
         const hash = await bcrypt.hash(pwd, 10);
 
         const ins = await query<any>(
-            `INSERT INTO users (full_name, phone_login, password_hash, role, is_active)
-       VALUES ($1,$2,$3,'worker',true)
+            `INSERT INTO users(full_name, phone_login, password_hash, role, is_active)
+VALUES($1, $2, $3, 'worker', true)
        RETURNING id, full_name, phone_login, role, is_active`,
             [body.full_name, phone, hash]
         );
@@ -137,15 +145,15 @@ adminRouter.get("/workers/:id/week", requireRole("admin"), async (req: any, res:
         const r = await query<any>(
             `SELECT t.*, (SELECT COUNT(*)::int FROM task_comments WHERE task_id = t.id) as comment_count
        FROM tasks t
-       WHERE t.user_id=$1 AND t.visible_date = ANY($2::date[])
+       WHERE t.user_id = $1 AND t.visible_date = ANY($2:: date[])
          AND t.deleted_at IS NULL
        ORDER BY t.visible_date ASC,
-         CASE
+    CASE
            WHEN t.is_mandatory THEN 1
            WHEN t.is_carryover THEN 3
            ELSE 2
          END ASC,
-         t.created_at ASC`,
+    t.created_at ASC`,
             [workerId, days]
         );
 
@@ -197,12 +205,12 @@ adminRouter.post("/mandatory/one-off", async (req: any, res: any, next: any) => 
 
         const ins = await query<any>(
             `INSERT INTO tasks
-        (user_id, title, is_mandatory, status, assigned_date, visible_date,
-         is_carryover, carryover_from_date, template_id, one_off_by_admin,
-         created_by, created_by_id)
-       VALUES
-        ($1,$2,true,'pending',$3,$3,false,NULL,NULL,true,'admin',NULL)
-       RETURNING *`,
+    (user_id, title, is_mandatory, status, assigned_date, visible_date,
+        is_carryover, carryover_from_date, template_id, one_off_by_admin,
+        created_by, created_by_id)
+VALUES
+    ($1, $2, true, 'pending', $3, $3, false, NULL, NULL, true, 'admin', NULL)
+RETURNING * `,
             [body.user_id, body.title, body.date]
         );
 
@@ -240,7 +248,7 @@ adminRouter.delete("/tasks/:id", requireRole("admin"), async (req: any, res: any
             return res.status(403).json({ error: "CANNOT_DELETE_PAST_TASKS" });
         }
 
-        await query(`UPDATE tasks SET deleted_at=NOW() WHERE id=$1 AND deleted_at IS NULL`, [id]);
+        await query(`UPDATE tasks SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL`, [id]);
 
         // Emit real-time event to the task owner
         emitToUser(task.user_id, "task:deleted", { taskId: id });
@@ -268,12 +276,12 @@ adminRouter.post("/project-task", requireRole("admin"), async (req: any, res: an
 
         const ins = await query<any>(
             `INSERT INTO tasks
-        (user_id, title, is_mandatory, is_project, status, assigned_date, visible_date,
-         is_carryover, carryover_from_date, template_id, one_off_by_admin,
-         created_by, created_by_id)
-       VALUES
-        ($1,$2,false,true,'pending',$3,$3,false,NULL,NULL,true,'admin',NULL)
-       RETURNING *`,
+    (user_id, title, is_mandatory, is_project, status, assigned_date, visible_date,
+        is_carryover, carryover_from_date, template_id, one_off_by_admin,
+        created_by, created_by_id)
+VALUES
+    ($1, $2, false, true, 'pending', $3, $3, false, NULL, NULL, true, 'admin', NULL)
+RETURNING * `,
             [body.user_id, body.title, body.date]
         );
 
@@ -361,7 +369,7 @@ adminRouter.get("/analytics", async (req: any, res: any, next: any) => {
                 const endDay = Math.min(w * 7, maxDay);
                 const s = first.set({ day: startDay }).toISODate()!;
                 const e = first.set({ day: endDay }).toISODate()!;
-                buckets.push({ label: `W${w}`, start: s, end: e });
+                buckets.push({ label: `W${ w } `, start: s, end: e });
             }
         }
 
@@ -393,10 +401,10 @@ adminRouter.get("/analytics", async (req: any, res: any, next: any) => {
             SELECT title, status, is_mandatory, visible_date, assigned_date
             FROM tasks
             WHERE deleted_at IS NULL
-              AND visible_date >= $1::date - INTERVAL '2 days' 
-              AND visible_date <= $2::date + INTERVAL '2 days'
-            ${targetWorkerId ? 'AND user_id=$3' : ''}
-        `;
+              AND visible_date >= $1:: date - INTERVAL '2 days' 
+              AND visible_date <= $2:: date + INTERVAL '2 days'
+            ${ targetWorkerId ? 'AND user_id=$3' : '' }
+`;
 
         const params: any[] = [globalStart, globalEnd];
         if (targetWorkerId) params.push(targetWorkerId);
@@ -423,7 +431,7 @@ adminRouter.get("/analytics", async (req: any, res: any, next: any) => {
                 aDate = DateTime.fromISO(aDate).setZone(APP_TZ).toISODate();
             }
             const normalized = { ...t, visible_date: vDate, assigned_date: aDate };
-            // console.log(`[TASKS_NORM] Title: ${t.title}, Date: ${vDate}, Status: ${t.status}`);
+            // console.log(`[TASKS_NORM] Title: ${ t.title }, Date: ${ vDate }, Status: ${ t.status } `);
             return normalized;
         });
 
@@ -440,13 +448,13 @@ adminRouter.get("/analytics", async (req: any, res: any, next: any) => {
             const mandTotal = mandTasks.length;
             const mandDone = mandTasks.filter(t => t.status === 'done').length;
             if (relevantTasks.length > 0) {
-                console.log(`[DEBUG_BUCKET] ${bucket.label} (${bucket.start} - ${bucket.end}): Found ${relevantTasks.length} tasks`);
-                relevantTasks.forEach(t => console.log(`   - Task: ${t.title}, Date: ${t.visible_date}, Status: ${t.status}, Mand: ${t.is_mandatory}`));
+                console.log(`[DEBUG_BUCKET] ${ bucket.label } (${ bucket.start } - ${ bucket.end }): Found ${ relevantTasks.length } tasks`);
+                relevantTasks.forEach(t => console.log(`   - Task: ${ t.title }, Date: ${ t.visible_date }, Status: ${ t.status }, Mand: ${ t.is_mandatory } `));
             }
 
             const compRate = mandTotal > 0 ? Math.round((mandDone / mandTotal) * 100) : 0;
 
-            console.log(`[analytics-js] ${bucket.label} (${bucket.start}): done=${done}/${total}, mand=${mandDone}/${mandTotal}`);
+            console.log(`[analytics - js] ${ bucket.label } (${ bucket.start }): done = ${ done } /${total}, mand=${mandDone}/${ mandTotal } `);
 
             return {
                 label: bucket.label,
@@ -507,12 +515,12 @@ adminRouter.get("/reports/full", requireRole("admin"), async (req: any, res: any
         // Join with users to get full_name
         const r = await query<any>(
             `SELECT t.*, u.full_name as worker_name,
-               (SELECT COUNT(*)::int FROM task_comments WHERE task_id = t.id) as comment_count
+    (SELECT COUNT(*)::int FROM task_comments WHERE task_id = t.id) as comment_count
              FROM tasks t
              JOIN users u ON t.user_id = u.id
              WHERE t.deleted_at IS NULL
-               AND t.visible_date >= $1::date
-               AND t.visible_date <= $2::date
+               AND t.visible_date >= $1:: date
+               AND t.visible_date <= $2:: date
              ORDER BY u.full_name ASC, t.visible_date ASC, t.is_mandatory DESC, t.created_at ASC`,
             [qv.start, qv.end]
         );

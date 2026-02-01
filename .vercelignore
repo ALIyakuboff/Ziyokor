@@ -1,0 +1,14 @@
+node_modules
+.git
+.env
+.env.local
+*.log
+dist
+build
+.turbo
+.vercel
+apps/api/src/server.ts
+apps/api/src/socket.ts
+docker
+infra
+render.yaml
