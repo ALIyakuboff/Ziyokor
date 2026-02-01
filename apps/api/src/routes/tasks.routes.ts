@@ -462,214 +462,218 @@ tasksRouter.patch("/:id/status", async (req: any, res: any, next: any) => {
         emitToRole("admin", "task:updated", { task: updatedTask, userId: me.id });
 
         res.json({ task: updatedTask });
+    } catch (e) {
+        next(e);
+    }
+});
 
-        // Done task (mandatory requires comment)
-        tasksRouter.patch("/:id/done", async (req: any, res: any, next: any) => {
-            try {
-                const me = (req as any).user as { id: string };
-                const id = req.params.id;
-                if (workHoursCheck(res)) return;
+// Done task (mandatory requires comment)
+tasksRouter.patch("/:id/done", async (req: any, res: any, next: any) => {
+    try {
+        const me = (req as any).user as { id: string };
+        const id = req.params.id;
+        if (workHoursCheck(res)) return;
 
-                const t = await query<any>("SELECT * FROM tasks WHERE id=$1 AND deleted_at IS NULL LIMIT 1", [id]);
-                if (!t.rows.length) return res.status(404).json({ error: "NOT_FOUND" });
-                const task = t.rows[0];
-                if (task.user_id !== me.id) return res.status(403).json({ error: "FORBIDDEN" });
+        const t = await query<any>("SELECT * FROM tasks WHERE id=$1 AND deleted_at IS NULL LIMIT 1", [id]);
+        if (!t.rows.length) return res.status(404).json({ error: "NOT_FOUND" });
+        const task = t.rows[0];
+        if (task.user_id !== me.id) return res.status(403).json({ error: "FORBIDDEN" });
 
-                const date = task.visible_date;
-                const closed = await query("SELECT date FROM day_closures WHERE date=$1 LIMIT 1", [date]);
-                if (closed.rows.length) return res.status(403).json({ error: "DAY_CLOSED" });
+        const date = task.visible_date;
+        const closed = await query("SELECT date FROM day_closures WHERE date=$1 LIMIT 1", [date]);
+        if (closed.rows.length) return res.status(403).json({ error: "DAY_CLOSED" });
 
-                // Ensure not future
-                if (ensureDateStr(date) > todayISO()) {
-                    return res.status(403).json({ error: "CANNOT_WORK_ON_FUTURE_TASK" });
-                }
+        // Ensure not future
+        if (ensureDateStr(date) > todayISO()) {
+            return res.status(403).json({ error: "CANNOT_WORK_ON_FUTURE_TASK" });
+        }
 
-                // Enforce comment for ALL tasks
-                const c = await query<{ cnt: number }>("SELECT COUNT(*)::int AS cnt FROM task_comments WHERE task_id=$1", [id]);
-                if ((c.rows[0]?.cnt || 0) < 1) {
-                    return res.status(400).json({ error: "COMMENT_REQUIRED" });
-                }
+        // Enforce comment for ALL tasks
+        const c = await query<{ cnt: number }>("SELECT COUNT(*)::int AS cnt FROM task_comments WHERE task_id=$1", [id]);
+        if ((c.rows[0]?.cnt || 0) < 1) {
+            return res.status(400).json({ error: "COMMENT_REQUIRED" });
+        }
 
-                const up = await query<any>(
-                    `UPDATE tasks
+        const up = await query<any>(
+            `UPDATE tasks
        SET status='done', completed_at=NOW(), completed_date=$2
        WHERE id=$1
        RETURNING *`,
-                    [id, todayISO()]
-                );
+            [id, todayISO()]
+        );
 
-                const updatedTask = up.rows[0];
+        const updatedTask = up.rows[0];
 
-                // Fix dates
-                updatedTask.visible_date = ensureDateStr(updatedTask.visible_date);
-                updatedTask.assigned_date = ensureDateStr(updatedTask.assigned_date);
+        // Fix dates
+        updatedTask.visible_date = ensureDateStr(updatedTask.visible_date);
+        updatedTask.assigned_date = ensureDateStr(updatedTask.assigned_date);
 
-                // Emit real-time event
-                emitToUser(me.id, "task:completed", { task: updatedTask });
-                emitToRole("admin", "task:completed", { task: updatedTask, userId: me.id });
+        // Emit real-time event
+        emitToUser(me.id, "task:completed", { task: updatedTask });
+        emitToRole("admin", "task:completed", { task: updatedTask, userId: me.id });
 
-                res.json({ task: updatedTask });
-            } catch (e) {
-                next(e);
+        res.json({ task: updatedTask });
+    } catch (e) {
+        next(e);
+    }
+});
+
+// Delete my normal task (cannot delete mandatory)
+tasksRouter.delete("/:id", async (req: any, res: any, next: any) => {
+    try {
+        const me = (req as any).user as { id: string };
+        const id = req.params.id;
+
+        const t = await query<any>("SELECT * FROM tasks WHERE id=$1 AND deleted_at IS NULL LIMIT 1", [id]);
+        if (!t.rows.length) return res.status(404).json({ error: "NOT_FOUND" });
+        const task = t.rows[0];
+
+        if (task.user_id !== me.id) return res.status(403).json({ error: "FORBIDDEN" });
+        if (task.is_mandatory) return res.status(403).json({ error: "CANNOT_DELETE_MANDATORY" });
+
+        const date = task.visible_date;
+        const closed = await query("SELECT date FROM day_closures WHERE date=$1 LIMIT 1", [date]);
+        if (closed.rows.length) return res.status(403).json({ error: "DAY_CLOSED" });
+
+        // User requested "serverdan ham o'chsin" (Hard Delete)
+        await query("DELETE FROM task_comments WHERE task_id=$1", [id]);
+        await query("DELETE FROM tasks WHERE id=$1", [id]);
+
+        // Emit real-time event
+        emitToUser(me.id, "task:deleted", { taskId: id });
+        emitToRole("admin", "task:deleted", { taskId: id, userId: me.id });
+
+        res.json({ ok: true });
+    } catch (e) {
+        next(e);
+    }
+});
+
+tasksRouter.get("/:id/comments", async (req: any, res: any, next: any) => {
+    try {
+        const me = (req as any).user as { id: string; role: string };
+        const id = req.params.id;
+
+        const t = await query<any>("SELECT user_id FROM tasks WHERE id=$1 AND deleted_at IS NULL LIMIT 1", [id]);
+        if (!t.rows.length) return res.status(404).json({ error: "NOT_FOUND" });
+        if (t.rows[0].user_id !== me.id && me.role !== "admin") return res.status(403).json({ error: "FORBIDDEN" });
+
+        const r = await query<{ items: any }>("SELECT items FROM task_comments WHERE task_id=$1 ORDER BY created_at ASC", [id]);
+        let all: string[] = [];
+        for (const row of r.rows) {
+            let list = row.items;
+            if (typeof list === 'string') {
+                try {
+                    list = JSON.parse(list);
+                } catch { list = []; }
             }
-        });
+            if (Array.isArray(list)) all.push(...list);
+        }
 
-        // Delete my normal task (cannot delete mandatory)
-        tasksRouter.delete("/:id", async (req: any, res: any, next: any) => {
-            try {
-                const me = (req as any).user as { id: string };
-                const id = req.params.id;
+        res.json({ items: all });
+    } catch (e) {
+        next(e);
+    }
+});
 
-                const t = await query<any>("SELECT * FROM tasks WHERE id=$1 AND deleted_at IS NULL LIMIT 1", [id]);
-                if (!t.rows.length) return res.status(404).json({ error: "NOT_FOUND" });
-                const task = t.rows[0];
+tasksRouter.put("/:id/comments", async (req: any, res: any, next: any) => {
+    try {
+        const me = (req as any).user as { id: string };
+        const id = req.params.id;
 
-                if (task.user_id !== me.id) return res.status(403).json({ error: "FORBIDDEN" });
-                if (task.is_mandatory) return res.status(403).json({ error: "CANNOT_DELETE_MANDATORY" });
+        const body = mustParse(
+            z.object({
+                items: z.array(z.string().min(1).max(500)).min(1)
+            }),
+            req.body
+        );
 
-                const date = task.visible_date;
-                const closed = await query("SELECT date FROM day_closures WHERE date=$1 LIMIT 1", [date]);
-                if (closed.rows.length) return res.status(403).json({ error: "DAY_CLOSED" });
+        const t = await query<any>("SELECT * FROM tasks WHERE id=$1 AND deleted_at IS NULL LIMIT 1", [id]);
+        if (!t.rows.length) return res.status(404).json({ error: "NOT_FOUND" });
+        const task = t.rows[0];
+        if (task.user_id !== me.id) return res.status(403).json({ error: "FORBIDDEN" });
 
-                // User requested "serverdan ham o'chsin" (Hard Delete)
-                await query("DELETE FROM task_comments WHERE task_id=$1", [id]);
-                await query("DELETE FROM tasks WHERE id=$1", [id]);
+        const date = task.visible_date;
+        const closed = await query("SELECT date FROM day_closures WHERE date=$1 LIMIT 1", [date]);
+        if (closed.rows.length) return res.status(403).json({ error: "DAY_CLOSED" });
 
-                // Emit real-time event
-                emitToUser(me.id, "task:deleted", { taskId: id });
-                emitToRole("admin", "task:deleted", { taskId: id, userId: me.id });
+        // REPLACE logic
+        await query("DELETE FROM task_comments WHERE task_id=$1", [id]);
 
-                res.json({ ok: true });
-            } catch (e) {
-                next(e);
-            }
-        });
-
-        tasksRouter.get("/:id/comments", async (req: any, res: any, next: any) => {
-            try {
-                const me = (req as any).user as { id: string; role: string };
-                const id = req.params.id;
-
-                const t = await query<any>("SELECT user_id FROM tasks WHERE id=$1 AND deleted_at IS NULL LIMIT 1", [id]);
-                if (!t.rows.length) return res.status(404).json({ error: "NOT_FOUND" });
-                if (t.rows[0].user_id !== me.id && me.role !== "admin") return res.status(403).json({ error: "FORBIDDEN" });
-
-                const r = await query<{ items: any }>("SELECT items FROM task_comments WHERE task_id=$1 ORDER BY created_at ASC", [id]);
-                let all: string[] = [];
-                for (const row of r.rows) {
-                    let list = row.items;
-                    if (typeof list === 'string') {
-                        try {
-                            list = JSON.parse(list);
-                        } catch { list = []; }
-                    }
-                    if (Array.isArray(list)) all.push(...list);
-                }
-
-                res.json({ items: all });
-            } catch (e) {
-                next(e);
-            }
-        });
-
-        tasksRouter.put("/:id/comments", async (req: any, res: any, next: any) => {
-            try {
-                const me = (req as any).user as { id: string };
-                const id = req.params.id;
-
-                const body = mustParse(
-                    z.object({
-                        items: z.array(z.string().min(1).max(500)).min(1)
-                    }),
-                    req.body
-                );
-
-                const t = await query<any>("SELECT * FROM tasks WHERE id=$1 AND deleted_at IS NULL LIMIT 1", [id]);
-                if (!t.rows.length) return res.status(404).json({ error: "NOT_FOUND" });
-                const task = t.rows[0];
-                if (task.user_id !== me.id) return res.status(403).json({ error: "FORBIDDEN" });
-
-                const date = task.visible_date;
-                const closed = await query("SELECT date FROM day_closures WHERE date=$1 LIMIT 1", [date]);
-                if (closed.rows.length) return res.status(403).json({ error: "DAY_CLOSED" });
-
-                // REPLACE logic
-                await query("DELETE FROM task_comments WHERE task_id=$1", [id]);
-
-                const ins = await query<any>(
-                    `INSERT INTO task_comments (task_id, user_id, items)
+        const ins = await query<any>(
+            `INSERT INTO task_comments (task_id, user_id, items)
        VALUES ($1,$2,$3)
        RETURNING *`,
-                    [id, me.id, JSON.stringify(body.items)]
-                );
+            [id, me.id, JSON.stringify(body.items)]
+        );
 
-                const comment = ins.rows[0];
+        const comment = ins.rows[0];
 
-                // Emit real-time event
-                emitToUser(me.id, "task:comments_updated", { taskId: id, items: body.items });
-                emitToRole("admin", "task:comments_updated", { taskId: id, items: body.items, userId: me.id });
+        // Emit real-time event
+        emitToUser(me.id, "task:comments_updated", { taskId: id, items: body.items });
+        emitToRole("admin", "task:comments_updated", { taskId: id, items: body.items, userId: me.id });
 
-                res.json({ comment });
-            } catch (e) {
-                next(e);
-            }
-        });
+        res.json({ comment });
+    } catch (e) {
+        next(e);
+    }
+});
 
-        tasksRouter.post("/:id/comments", async (req: any, res: any, next: any) => {
-            try {
-                const me = (req as any).user as { id: string };
-                const id = req.params.id;
+tasksRouter.post("/:id/comments", async (req: any, res: any, next: any) => {
+    try {
+        const me = (req as any).user as { id: string };
+        const id = req.params.id;
 
-                const body = mustParse(
-                    z.object({
-                        items: z.array(z.string().min(1).max(500)).min(1)
-                    }),
-                    req.body
-                );
+        const body = mustParse(
+            z.object({
+                items: z.array(z.string().min(1).max(500)).min(1)
+            }),
+            req.body
+        );
 
-                const t = await query<any>("SELECT * FROM tasks WHERE id=$1 AND deleted_at IS NULL LIMIT 1", [id]);
-                if (!t.rows.length) return res.status(404).json({ error: "NOT_FOUND" });
-                const task = t.rows[0];
-                if (task.user_id !== me.id) return res.status(403).json({ error: "FORBIDDEN" });
+        const t = await query<any>("SELECT * FROM tasks WHERE id=$1 AND deleted_at IS NULL LIMIT 1", [id]);
+        if (!t.rows.length) return res.status(404).json({ error: "NOT_FOUND" });
+        const task = t.rows[0];
+        if (task.user_id !== me.id) return res.status(403).json({ error: "FORBIDDEN" });
 
-                const date = task.visible_date;
-                const closed = await query("SELECT date FROM day_closures WHERE date=$1 LIMIT 1", [date]);
-                if (closed.rows.length) return res.status(403).json({ error: "DAY_CLOSED" });
+        const date = task.visible_date;
+        const closed = await query("SELECT date FROM day_closures WHERE date=$1 LIMIT 1", [date]);
+        if (closed.rows.length) return res.status(403).json({ error: "DAY_CLOSED" });
 
-                const ins = await query<any>(
-                    `INSERT INTO task_comments (task_id, user_id, items)
+        const ins = await query<any>(
+            `INSERT INTO task_comments (task_id, user_id, items)
        VALUES ($1,$2,$3)
        RETURNING *`,
-                    [id, me.id, JSON.stringify(body.items)]
-                );
+            [id, me.id, JSON.stringify(body.items)]
+        );
 
-                const comment = ins.rows[0];
+        const comment = ins.rows[0];
 
-                // Emit real-time event
-                emitToUser(me.id, "task:comment_added", { taskId: id, comment });
-                emitToRole("admin", "task:comment_added", { taskId: id, comment, userId: me.id });
+        // Emit real-time event
+        emitToUser(me.id, "task:comment_added", { taskId: id, comment });
+        emitToRole("admin", "task:comment_added", { taskId: id, comment, userId: me.id });
 
-                res.json({ comment });
-            } catch (e) {
-                next(e);
-            }
-        });
+        res.json({ comment });
+    } catch (e) {
+        next(e);
+    }
+});
 
-        // GET my report (for PDF)
-        tasksRouter.get("/me/report", async (req: any, res: any, next: any) => {
+// GET my report (for PDF)
+tasksRouter.get("/me/report", async (req: any, res: any, next: any) => {
 
-            try {
-                const qv = mustParse(
-                    z.object({
-                        start: zISODate,
-                        end: zISODate
-                    }),
-                    req.query
-                );
-                const me = (req as any).user as { id: string; full_name: string };
+    try {
+        const qv = mustParse(
+            z.object({
+                start: zISODate,
+                end: zISODate
+            }),
+            req.query
+        );
+        const me = (req as any).user as { id: string; full_name: string };
 
-                const r = await query<any>(
-                    `SELECT t.*, u.full_name as worker_name,
+        const r = await query<any>(
+            `SELECT t.*, u.full_name as worker_name,
                (SELECT COUNT(*)::int FROM task_comments WHERE task_id = t.id) as comment_count
              FROM tasks t
              JOIN users u ON t.user_id = u.id
@@ -678,28 +682,28 @@ tasksRouter.patch("/:id/status", async (req: any, res: any, next: any) => {
                AND t.visible_date >= $2::date
                AND t.visible_date <= $3::date
              ORDER BY t.visible_date ASC, t.is_mandatory DESC, t.created_at ASC`,
-                    [me.id, qv.start, qv.end]
-                );
+            [me.id, qv.start, qv.end]
+        );
 
-                // Grouping is simple here as it's only one worker
-                const report = [{
-                    worker_name: me.full_name,
-                    tasks: r.rows.map(row => ({
-                        ...row,
-                        visible_date: row.visible_date instanceof Date
-                            ? DateTime.fromJSDate(row.visible_date).setZone(APP_TZ).toISODate()
-                            : row.visible_date
-                    }))
-                }];
+        // Grouping is simple here as it's only one worker
+        const report = [{
+            worker_name: me.full_name,
+            tasks: r.rows.map(row => ({
+                ...row,
+                visible_date: row.visible_date instanceof Date
+                    ? DateTime.fromJSDate(row.visible_date).setZone(APP_TZ).toISODate()
+                    : row.visible_date
+            }))
+        }];
 
-                res.json({
-                    start: qv.start,
-                    end: qv.end,
-                    data: report
-                });
-            } catch (e) {
-                next(e);
-            }
+        res.json({
+            start: qv.start,
+            end: qv.end,
+            data: report
         });
+    } catch (e) {
+        next(e);
+    }
+});
 
 
