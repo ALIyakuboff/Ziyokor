@@ -12,8 +12,6 @@ type Props = {
 };
 
 export default function ProjectTaskModal({ workers, onClose, onSuccess, defaultDate }: Props) {
-    // ... rest of component
-    const createProjectTaskFn = createProjectTask; // Just alias if needed, or use directly
     const [step, setStep] = useState(1);
     const [targetWorker, setTargetWorker] = useState<Worker | null>(null);
     const [title, setTitle] = useState("");
@@ -33,7 +31,7 @@ export default function ProjectTaskModal({ workers, onClose, onSuccess, defaultD
         if (!title.trim() || !date || !targetWorker) return;
         setBusy(true);
         try {
-            await createProjectTaskFn(targetWorker.id, title, date);
+            await createProjectTask(targetWorker.id, title, date);
             onSuccess();
         } catch (err: any) {
             alert(err?.message || "Xatolik yuz berdi");
