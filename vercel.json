@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "buildCommand": "npm install --legacy-peer-deps && npx turbo build --filter=work-control-portal",
+    "buildCommand": "cd apps/web-portal && npm install --legacy-peer-deps && npm run build",
     "installCommand": "npm install --legacy-peer-deps",
     "outputDirectory": "apps/web-portal/dist",
     "framework": null,
