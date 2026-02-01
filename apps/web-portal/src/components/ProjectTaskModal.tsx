@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import WorkerPicker from "./WorkerPicker";
-
-const { createProjectTask } = require("../api/tasks") as any;
+import { createProjectTask } from "../api/tasks";
 
 type Worker = { id: string; full_name: string };
 
@@ -12,11 +11,9 @@ type Props = {
     defaultDate?: string;
 };
 
-// Fix for strict mode complaining about missing types in JS module
-// @ts-ignore
-const createProjectTaskFn = createProjectTask as (uid: string, title: string, date: string) => Promise<any>;
-
 export default function ProjectTaskModal({ workers, onClose, onSuccess, defaultDate }: Props) {
+    // ... rest of component
+    const createProjectTaskFn = createProjectTask; // Just alias if needed, or use directly
     const [step, setStep] = useState(1);
     const [targetWorker, setTargetWorker] = useState<Worker | null>(null);
     const [title, setTitle] = useState("");
