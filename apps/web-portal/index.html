@@ -10,6 +10,11 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        // Polyfill to prevent "require is not defined" errors from legacy libraries
+        window.require = window.require || function () { return {}; };
+        window.global = window;
+    </script>
 </head>
 
 <body>
