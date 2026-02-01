@@ -55,6 +55,13 @@ export async function deactivateWorker(workerId: string) {
     });
 }
 
+export async function createProjectTask(userId: string, title: string, date: string) {
+    return apiFetch<{ task: Task }>("/admin/project-task", {
+        method: "POST",
+        body: JSON.stringify({ user_id: userId, title, date })
+    });
+}
+
 // --- Worker APIs ---
 
 export async function getMyWeek(anchor?: string) {
@@ -75,6 +82,13 @@ export async function startTask(id: string) {
 
 export async function doneTask(id: string) {
     return apiFetch<{ task: Task }>(`/tasks/${id}/done`, { method: "PATCH" });
+}
+
+export async function updateTaskStatus(id: string, status: string) {
+    return apiFetch<{ task: Task }>(`/tasks/${id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status })
+    });
 }
 
 export async function deleteTask(id: string) {
