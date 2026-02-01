@@ -1,7 +1,3 @@
-// @ts-ignore
-import jsPDF from "jspdf";
-// @ts-ignore
-import autoTable from "jspdf-autotable";
 
 /**
  * Generates a PDF report for workers' tasks
@@ -11,6 +7,12 @@ export async function generateWorkerPDFReport(
     period: string,
     data: { worker_name: string; tasks: any[] }[]
 ) {
+    // Dynamic import to prevent "require is not defined" error on initial load
+    // @ts-ignore
+    const jsPDF = (await import("jspdf")).default;
+    // @ts-ignore
+    const autoTable = (await import("jspdf-autotable")).default;
+
     const doc = new jsPDF();
 
     // Header

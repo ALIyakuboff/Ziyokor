@@ -46,7 +46,7 @@ export async function verifyPassword(phone_login: string, password: string) {
     return user;
 }
 
-export function authRequired(req: Request, res: Response, next: NextFunction) {
+export function authRequired(req: any, res: any, next: any) {
     const h = req.headers.authorization || "";
     const token = h.startsWith("Bearer ") ? h.slice(7) : "";
     if (!token) {
@@ -69,7 +69,7 @@ export function authRequired(req: Request, res: Response, next: NextFunction) {
 }
 
 export function requireRole(role: Role) {
-    return (req: Request, res: Response, next: NextFunction) => {
+    return (req: any, res: any, next: any) => {
         const u = (req as any).user as AuthedUser | undefined;
         if (!u) return res.status(401).json({ error: "UNAUTHORIZED" });
         if (u.role !== role) return res.status(403).json({ error: "FORBIDDEN" });
