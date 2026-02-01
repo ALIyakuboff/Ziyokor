@@ -28,4 +28,4 @@ services:
         fromService:
           type: web
           name: ziyokor-api
-          property: url
+          property: host
