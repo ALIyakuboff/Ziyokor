@@ -82,6 +82,9 @@ export default function Login() {
                     <button className="btn primary" disabled={loading}>
                         {loading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : "Kirish"}
                     </button>
+                    <div style={{ marginTop: 20, fontSize: 10, color: '#999', wordBreak: 'break-all' }}>
+                        API: {import.meta.env.VITE_API_URL || "NOT_SET"}
+                    </div>
                 </form>
             </div>
         </div>
