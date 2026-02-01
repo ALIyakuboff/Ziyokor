@@ -1,15 +1,15 @@
-```
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { authRequired, roleRequired } from "../auth";
+import { authRequired, requireRole } from "../auth";
 import { mustParse, zISODate } from "../utils/validate";
 import { query } from "../db";
 import { todayISO, weekDaysMonToSat, APP_TZ } from "../utils/date";
 import { DateTime } from "luxon";
+import { normalizePhoneDigits, last4Digits } from "../utils/phone";
 
 // Socket.IO is optional (not available in serverless)
-let emitToUser: any = () => {};
+let emitToUser: any = () => { };
 try {
     const socketModule = require("../socket");
     emitToUser = socketModule.emitToUser;
@@ -369,7 +369,7 @@ adminRouter.get("/analytics", async (req: any, res: any, next: any) => {
                 const endDay = Math.min(w * 7, maxDay);
                 const s = first.set({ day: startDay }).toISODate()!;
                 const e = first.set({ day: endDay }).toISODate()!;
-                buckets.push({ label: `W${ w } `, start: s, end: e });
+                buckets.push({ label: `W${w} `, start: s, end: e });
             }
         }
 
@@ -403,7 +403,7 @@ adminRouter.get("/analytics", async (req: any, res: any, next: any) => {
             WHERE deleted_at IS NULL
               AND visible_date >= $1:: date - INTERVAL '2 days' 
               AND visible_date <= $2:: date + INTERVAL '2 days'
-            ${ targetWorkerId ? 'AND user_id=$3' : '' }
+            ${targetWorkerId ? 'AND user_id=$3' : ''}
 `;
 
         const params: any[] = [globalStart, globalEnd];
@@ -448,13 +448,13 @@ adminRouter.get("/analytics", async (req: any, res: any, next: any) => {
             const mandTotal = mandTasks.length;
             const mandDone = mandTasks.filter(t => t.status === 'done').length;
             if (relevantTasks.length > 0) {
-                console.log(`[DEBUG_BUCKET] ${ bucket.label } (${ bucket.start } - ${ bucket.end }): Found ${ relevantTasks.length } tasks`);
-                relevantTasks.forEach(t => console.log(`   - Task: ${ t.title }, Date: ${ t.visible_date }, Status: ${ t.status }, Mand: ${ t.is_mandatory } `));
+                console.log(`[DEBUG_BUCKET] ${bucket.label} (${bucket.start} - ${bucket.end}): Found ${relevantTasks.length} tasks`);
+                relevantTasks.forEach(t => console.log(`   - Task: ${t.title}, Date: ${t.visible_date}, Status: ${t.status}, Mand: ${t.is_mandatory} `));
             }
 
             const compRate = mandTotal > 0 ? Math.round((mandDone / mandTotal) * 100) : 0;
 
-            console.log(`[analytics - js] ${ bucket.label } (${ bucket.start }): done = ${ done } /${total}, mand=${mandDone}/${ mandTotal } `);
+            console.log(`[analytics - js] ${bucket.label} (${bucket.start}): done = ${done} /${total}, mand=${mandDone}/${mandTotal} `);
 
             return {
                 label: bucket.label,
