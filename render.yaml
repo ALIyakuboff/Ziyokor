@@ -4,7 +4,7 @@ services:
     name: ziyokor-api
     runtime: node
     plan: free
-    buildCommand: pnpm install && pnpm run build --filter=work-control-api
+    buildCommand: pnpm install --prod=false && pnpm run build --filter=work-control-api
     startCommand: node apps/api/dist/main.js
     envVars:
       - key: NODE_VERSION
@@ -19,7 +19,7 @@ services:
     name: ziyokor-web
     runtime: node
     plan: free
-    buildCommand: pnpm install && pnpm run build --filter=work-control-portal
+    buildCommand: pnpm install --prod=false && pnpm run build --filter=work-control-portal
     startCommand: npx serve -s apps/web-portal/dist -l $PORT
     envVars:
       - key: NODE_VERSION
