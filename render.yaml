@@ -27,7 +27,4 @@ services:
       - key: NODE_VERSION
         value: "20"
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: ziyokor-api
-          property: host
+        sync: false # Render panelidan kiritasiz (Public URL)
