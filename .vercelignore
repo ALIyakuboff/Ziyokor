@@ -3,8 +3,6 @@ node_modules
 .env
 .env.local
 *.log
-dist
-build
 .turbo
 .vercel
 apps/api/src/server.ts

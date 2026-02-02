@@ -1,8 +1,8 @@
 {
     "version": 2,
-    "buildCommand": "cd apps/web-portal && npx pnpm@9.15.4 run build",
+    "buildCommand": "npx turbo build --filter=work-control-portal --force",
     "installCommand": "npx pnpm@9.15.4 install --no-frozen-lockfile",
-    "outputDirectory": "dist",
+    "outputDirectory": "apps/web-portal/dist",
     "framework": null,
     "rewrites": [
         {
