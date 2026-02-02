@@ -28,6 +28,7 @@
         "DB_AUTO_INIT",
         "TZ",
         "ENABLE_EXPERIMENTAL_COREPACK",
+        "CRON_SECRET",
         "tz"
     ],
     "globalPassThroughEnv": [
@@ -37,6 +38,7 @@
         "DB_AUTO_INIT",
         "TZ",
         "ENABLE_EXPERIMENTAL_COREPACK",
+        "CRON_SECRET",
         "tz"
     ]
 }
