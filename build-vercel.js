@@ -8,7 +8,17 @@ const appDir = path.join(__dirname, 'apps', 'web-portal');
 const sourceDist = path.join(appDir, 'dist');
 const targetDist = path.join(__dirname, 'dist');
 
+console.log('Build Script running on Node:', process.version);
+console.log('Current Directory:', __dirname);
+console.log('Root contents:', fs.readdirSync(__dirname));
+
 try {
+    if (fs.existsSync(appDir)) {
+        console.log('App dir contents:', fs.readdirSync(appDir));
+    } else {
+        console.error('CRITICAL: apps/web-portal does not exist!');
+    }
+
     // 1. Install Dependencies
     console.log('📦 Installing dependencies...');
     // We assume pnpm install is run by Vercel's installCommand, but we can run a specific one for the app if needed.
