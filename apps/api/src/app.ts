@@ -24,7 +24,16 @@ export function createApp() {
     );
     app.use(express.json({ limit: "1mb" }));
 
-    app.get(["/api/health", "/health"], (_req: any, res: any) => res.json({ ok: true }));
+    app.get(["/api/health", "/health"], async (_req: any, res: any) => {
+        try {
+            const { query } = require("./db");
+            const dbResult = await query("SELECT 1 as connected");
+            res.json({ ok: true, db: !!dbResult.rowCount });
+        } catch (error: any) {
+            console.error("[health] DB Error:", error.message);
+            res.status(503).json({ ok: false, db: false, error: error.message });
+        }
+    });
 
     app.use(["/api/auth", "/auth"], authRouter);
     app.use(["/api/tasks", "/tasks"], tasksRouter);
