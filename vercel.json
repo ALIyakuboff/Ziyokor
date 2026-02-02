@@ -14,10 +14,6 @@
             "destination": "/api/simple"
         },
         {
-            "source": "/api/debug-vercel",
-            "destination": "/api/debug"
-        },
-        {
             "source": "/api/(.*)",
             "destination": "/api/index"
         },
