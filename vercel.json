@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "buildCommand": "npx turbo build --filter=work-control-portal --force && cp -r apps/web-portal/dist dist",
+    "buildCommand": "npx turbo build --filter=work-control-portal --force && echo 'VERIFY ROOT DIST:' && ls -F dist",
     "installCommand": "npx pnpm@9.15.4 install --no-frozen-lockfile",
     "outputDirectory": "dist",
     "rewrites": [
