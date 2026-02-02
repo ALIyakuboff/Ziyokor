@@ -27,11 +27,12 @@ export function createApp() {
     app.get(["/api/health", "/health"], async (_req: any, res: any) => {
         try {
             const { query } = require("./db");
-            const dbResult = await query("SELECT 1 as connected");
-            res.json({ ok: true, db: !!dbResult.rowCount });
+            // Check if users table exists by counting users
+            const dbResult = await query("SELECT count(*) as total FROM users");
+            res.json({ ok: true, db: true, table_check: "users", count: dbResult.rows[0].total });
         } catch (error: any) {
             console.error("[health] DB Error:", error.message);
-            res.status(503).json({ ok: false, db: false, error: error.message });
+            res.status(503).json({ ok: false, db: true, error: error.message, code: error.code });
         }
     });
 
