@@ -1,8 +1,8 @@
 {
     "version": 2,
-    "buildCommand": "cd apps/web-portal && ../../node_modules/.bin/vite build && cd ../.. && rm -rf dist && mkdir -p dist && mv apps/web-portal/dist/* dist",
+    "buildCommand": "pnpm --filter work-control-portal build",
     "installCommand": "NODE_ENV=development npx pnpm@9.15.4 install --no-frozen-lockfile",
-    "outputDirectory": "dist",
+    "outputDirectory": "apps/web-portal/dist",
     "framework": null,
     "rewrites": [
         {
