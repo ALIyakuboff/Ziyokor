@@ -25,13 +25,15 @@ export function createApp() {
     app.use(express.json({ limit: "1mb" }));
 
     app.get(["/api/health", "/health"], async (_req: any, res: any) => {
+        const hasEnv = !!process.env.DATABASE_URL;
+        const envPrefix = process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 15) : "none";
         try {
             const { query } = require("./db");
             const dbResult = await query("SELECT 1 as connected");
-            res.json({ ok: true, db: !!dbResult.rowCount });
+            res.json({ ok: true, db: !!dbResult.rowCount, hasEnv, envPrefix });
         } catch (error: any) {
             console.error("[health] DB Error:", error.message);
-            res.status(503).json({ ok: false, db: false, error: error.message });
+            res.status(503).json({ ok: false, db: false, error: error.message, hasEnv, envPrefix });
         }
     });
 
