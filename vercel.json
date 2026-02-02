@@ -1,8 +1,8 @@
 {
     "version": 2,
-    "buildCommand": "npx turbo build --filter=work-control-portal --force && echo 'LS ROOT:' && ls -F && echo 'LS APP:' && ls -F apps/web-portal && echo 'LS APP DIST:' && ls -F apps/web-portal/dist && cp -r apps/web-portal/dist dist",
+    "buildCommand": "npx turbo build --filter=work-control-portal --force",
     "installCommand": "npx pnpm@9.15.4 install --no-frozen-lockfile",
-    "outputDirectory": "dist",
+    "outputDirectory": "apps/web-portal/dist",
     "rewrites": [
         {
             "source": "/socket.io/(.*)",
