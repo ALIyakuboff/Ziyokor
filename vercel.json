@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "buildCommand": "echo 'DEBUG START' && pwd && ls -la && pnpm --filter work-control-portal build && echo 'DEBUG END' && ls -la && echo 'LS DIST:' && ls -la dist",
+    "buildCommand": "pnpm --filter work-control-portal build && cp -r ../web-portal/dist .",
     "installCommand": "npx pnpm@9.15.4 install --no-frozen-lockfile",
     "outputDirectory": "dist",
     "framework": null,
