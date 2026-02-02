@@ -52,7 +52,7 @@ export async function initDbIfNeeded() {
     await ensureDefaultAdmin();
 }
 
-async function ensureDefaultAdmin() {
+export async function ensureDefaultAdmin() {
     const name = process.env.ADMIN_NAME || "Admin";
     const phone = normalizePhoneDigits(process.env.ADMIN_PHONE || "");
     if (!phone) {

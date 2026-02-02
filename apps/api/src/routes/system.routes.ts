@@ -5,10 +5,23 @@ import { closeDayJob } from "../cron/closeDay";
 import { generateMandatoryJob } from "../cron/generateMandatory";
 import { purge3MonthsJob } from "../cron/purge3Months";
 import { APP_TZ, todayISO } from "../utils/date";
+import { initDbIfNeeded } from "../db";
 
 export const systemRouter = Router();
 
 // Manual trigger endpoints (admin only)
+// Public init endpoint (use with caution, or add a secret header check if needed)
+systemRouter.post("/init-db", async (req: any, res: any) => {
+    try {
+        await initDbIfNeeded();
+        // Also force admin check explicitly just in case env var is missing but we want to try
+        // await ensureDefaultAdmin(); 
+        res.json({ ok: true, message: "DB init triggered" });
+    } catch (e: any) {
+        res.status(500).json({ ok: false, error: e.message });
+    }
+});
+
 systemRouter.use(authRequired, requireRole("admin"));
 
 systemRouter.post("/jobs/generate-mandatory", async (req: any, res: any, next: any) => {
