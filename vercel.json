@@ -10,6 +10,10 @@
             "destination": "/api/index"
         },
         {
+            "source": "/api/debug-vercel",
+            "destination": "/api/debug"
+        },
+        {
             "source": "/api/(.*)",
             "destination": "/api/index"
         },
