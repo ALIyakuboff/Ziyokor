@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { DateTime } from "luxon";
+import { BarChart, Calendar } from "lucide-react";
 import { getFullReportData } from "../api/admin";
 import { getMyReportData } from "../api/tasks";
 import { generateWorkerPDFReport } from "../utils/pdfReport";

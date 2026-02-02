@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { MessageCircle, Check, AlertTriangle, Play, HelpCircle, FileText } from "lucide-react";
 import CommentModalWhite from "./CommentModalWhite";
-import { updateTaskStatus, doneTask } from "../../api/tasks";
+import { updateTaskStatus, doneTask, Task } from "../../api/tasks";
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
     pending: { label: "Kutilmoqda", color: "#999", icon: FileText },
     started: { label: "Boshlandi", color: "#4f8dff", icon: Play },
     in_progress: { label: "Jarayonda", color: "#4f8dff", icon: Play },
@@ -14,69 +13,36 @@ const STATUS_CONFIG = {
     missed: { label: "O'tkazib yuborildi", color: "#ff4d4f", icon: AlertTriangle }
 };
 
-export default function TaskListProject({ items, onRefresh }) {
-    const [commentFor, setCommentFor] = useState(null);
-    const [loadingId, setLoadingId] = useState(null);
-    const [statusMenuOpen, setStatusMenuOpen] = useState(null); // taskId
+export default function TaskListProject({ items, onRefresh }: { items: Task[]; onRefresh: () => void }) {
+    const [commentFor, setCommentFor] = useState<Task | null>(null);
+    const [loadingId, setLoadingId] = useState<string | null>(null);
+    const [statusMenuOpen, setStatusMenuOpen] = useState<string | null>(null); // taskId
 
-    const changeStatus = async (task, status) => {
+    const changeStatus = async (task: Task, status: string) => {
         setLoadingId(task.id);
         setStatusMenuOpen(null);
         try {
             await updateTaskStatus(task.id, status);
             onRefresh();
-        } catch (e) {
+        } catch (e: any) {
             alert(e.message || "Xatolik");
         } finally {
             setLoadingId(null);
         }
     };
 
-    const handleCheck = async (task) => {
+    const handleCheck = async (task: Task) => {
         if (task.status !== 'done') {
             alert("Vazifani tugatish uchun avval statusni 'Bajarildi' (Done) qilib belgilang.");
             return;
         }
-        // If already 'done' status, clicking check means "Confirm Completion" (Backend: completed_at set)
-        // Since updateTaskStatus('done') already sets completed_at basically (in our implementation),
-        // we can just re-call it or call doneTask to be sure.
-        // User requirement: "qachonki Done tugmasini bosib ✅ ni bosganda topshiriq tugatilsin"
-        // This implies visual separation. 
-        // Logic: 
-        // 1. Status is 'done' (visual).
-        // 2. Click ✅ -> call doneTask (which sets completed_at and removes from active if completed_date logic applies)
-        // However, our `updateTaskStatus` implementation for 'done' ALREADY sets completed_at.
-        // So clicking "Done" status ALREADY creates the completion effect.
-        // Maybe we should separate them?
-        // Let's assume Status 'done' sets status='done' but NOT completed_at?
-        // No, backend implementation I wrote sets completed_at immediately.
-        // To match user request exactly "Done tugmasini bosib ✅ ni bosganda":
-        // Maybe "Done" in dropdown should be "Tayyor" (Ready) and then ✅ makes it "Done" (Completed)?
-        // Or "Testing" -> "Done" (dropdown) -> ✅ (Archive/Hide)?
-        // Since backend is already updated to finalize on 'done', let's stick to:
-        // Dropdown sets status. If user sets 'done', it acts as completed.
-        // Use ✅ button as a visual "Save" or "Ack" button if needed, or just hide it for non-done?
-        // User Said: "Project topshiriqlarini bajarish uchun yangi tugma qo'sh uni yonida ✅ tugmasi bolsin! ... Done tugmasini bosib ✅ ni bosganda topshiriq tugatilsin"
-        // This strongly suggests a two-step process.
-        // Step 1: Dropdown select 'done'.
-        // Step 2: Click ✅.
-        // BUT my backend `updateTaskStatus` handles 'done' by finishing it.
-        // I should probably change backend `done` handler in `updateTaskStatus` to NOT set completed_at/completed_date ??
-        // OR simpler: Button ✅ simply calls `doneTask` (which sets done + completed_at).
-        // Dropdown 'done' option just sets status='done' (and maybe backend logic handles it).
-        // Let's just implement the UI such that:
-        // Dropdown has [Problem, Started, Testing].
-        // If user wants Done, they select "Done" from dropdown?
-        // Or use ✅?
-        // "Done tugmasini bosib ✅ ni bosganda" -> Select Done from dropdown, THEN press ✅.
-        // Okay.
 
         setLoadingId(task.id);
         try {
             await doneTask(task.id);
             onRefresh();
-        } catch (e) {
-            alert(e.message);
+        } catch (e: any) {
+            alert(e.message || "Xatolik");
         } finally {
             setLoadingId(null);
         }
@@ -84,7 +50,7 @@ export default function TaskListProject({ items, onRefresh }) {
 
     return (
         <div className="taskList">
-            {items.length === 0 && <div className="muted small">Project vazifalar yo'q</div>}
+            {items.length === 0 && <div className="muted small" style={{ textAlign: 'center', padding: '10px 0' }}>Project vazifalar yo'q</div>}
 
             {items.map((t) => {
                 const conf = STATUS_CONFIG[t.status] || STATUS_CONFIG.pending;
@@ -94,12 +60,12 @@ export default function TaskListProject({ items, onRefresh }) {
                     <div key={t.id} className="taskRow" style={{ flexWrap: 'wrap', gap: 8 }}>
                         <div style={{ flex: 1, minWidth: '200px' }}>
                             <div className="taskTitle">{t.title}</div>
-                            <div className="muted small" style={{ display: 'flex', gap: 4 }}>
-                                Created: {new Date(t.created_at).toLocaleDateString()}
+                            <div className="muted small">
+                                Sana: {t.visible_date}
                             </div>
                         </div>
 
-                        <div className="taskActions" style={{ position: 'relative' }}>
+                        <div className="taskActions" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 6 }}>
                             {/* Status Button */}
                             <button
                                 className="btn mini"
@@ -108,30 +74,51 @@ export default function TaskListProject({ items, onRefresh }) {
                                     color: '#fff',
                                     width: 'auto',
                                     padding: '0 8px',
-                                    fontSize: 12,
+                                    fontSize: 11,
                                     height: 28,
+                                    display: 'flex',
+                                    alignItems: 'center',
                                     gap: 4
                                 }}
                                 onClick={() => setStatusMenuOpen(statusMenuOpen === t.id ? null : t.id)}
                             >
-                                <Icon size={14} />
+                                <Icon size={12} />
                                 {conf.label}
                             </button>
 
                             {/* Dropdown */}
                             {statusMenuOpen === t.id && (
-                                <div className="dropdownMenu" style={{ right: 40, top: 32, width: 140, zIndex: 10 }}>
+                                <div className="dropdown" style={{
+                                    right: 0,
+                                    top: 32,
+                                    width: 150,
+                                    position: 'absolute',
+                                    zIndex: 100,
+                                    background: '#1a1c1e',
+                                    border: '1px solid #333',
+                                    borderRadius: 8,
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                                    padding: 4
+                                }}>
                                     {[
                                         ['problem', 'Muammo', AlertTriangle, '#ff4d4f'],
                                         ['started', 'Boshlandi', Play, '#4f8dff'],
                                         ['testing', 'Testing', HelpCircle, '#faad14'],
                                         ['done', 'Bajarildi', Check, '#52c41a'],
-                                    ].map(([key, label, Ico, col]) => (
+                                    ].map(([key, label, Ico, col]: any) => (
                                         <div
                                             key={key}
-                                            className="menuItem"
+                                            className="dropdownItem"
                                             onClick={() => changeStatus(t, key)}
-                                            style={{ color: col, gap: 8, display: 'flex', alignItems: 'center' }}
+                                            style={{
+                                                color: col,
+                                                gap: 8,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                padding: '8px 12px',
+                                                fontSize: 13,
+                                                cursor: 'pointer'
+                                            }}
                                         >
                                             <Ico size={14} /> {label}
                                         </div>
@@ -145,16 +132,16 @@ export default function TaskListProject({ items, onRefresh }) {
                                 onClick={() => setCommentFor(t)}
                                 title="Izohlar"
                             >
-                                <MessageCircle size={18} />
-                                {t.comment_count > 0 && <span className="badge">{t.comment_count}</span>}
+                                <MessageCircle size={16} />
+                                {t.comment_count !== undefined && t.comment_count > 0 && <span className="badge" style={{ marginLeft: 4 }}>{t.comment_count}</span>}
                             </button>
 
                             {/* Check Button (Finalize) */}
                             <button
                                 className="btn mini ok"
                                 onClick={() => handleCheck(t)}
-                                disabled={loadingId === t.id}
-                                title={t.status === 'done' ? "Tugatish (Arxivlash)" : "Avval 'Bajarildi' tanlang"}
+                                disabled={!!loadingId}
+                                title={t.status === 'done' ? "Tugatish" : "Avval 'Bajarildi' tanlang"}
                             >
                                 <Check size={18} />
                             </button>
@@ -175,7 +162,10 @@ export default function TaskListProject({ items, onRefresh }) {
             )}
 
             {statusMenuOpen && (
-                <div className="clickOutOverlay" onClick={() => setStatusMenuOpen(null)}></div>
+                <div
+                    style={{ position: 'fixed', inset: 0, zIndex: 90 }}
+                    onClick={() => setStatusMenuOpen(null)}
+                />
             )}
         </div>
     );
