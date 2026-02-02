@@ -4,6 +4,7 @@ import ProgressRing from "./ProgressRing";
 import TaskListMandatory from "./TaskListMandatory";
 import TaskListNormal from "./TaskListNormal";
 import TaskListCarryover from "./TaskListCarryover";
+import TaskListProject from "./TaskListProject";
 import { weekdayUz } from "../../utils/weekday";
 import { formatDateShort } from "../../utils/date";
 
@@ -38,6 +39,11 @@ export default function DayCard9x16({
                 <div className="section">
                     <div className="sectionTitle">Mening ishlarim</div>
                     <TaskListNormal dayISO={dayISO} items={group?.normal || []} onRefresh={onRefresh} />
+                </div>
+
+                <div className="section">
+                    <div className="sectionTitle" style={{ color: '#4f8dff' }}>Project</div>
+                    <TaskListProject items={group?.project || []} onRefresh={onRefresh} />
                 </div>
 
                 <div className="divider" />
