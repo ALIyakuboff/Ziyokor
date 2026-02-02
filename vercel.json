@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "buildCommand": "pnpm --filter work-control-portal build && echo 'VERIFY BUILD:' && ls -la apps/web-portal/dist",
+    "buildCommand": "pnpm --filter work-control-portal build",
     "installCommand": "NODE_ENV=development npx pnpm@9.15.4 install --no-frozen-lockfile",
     "outputDirectory": "apps/web-portal/dist",
     "framework": null,
