@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "buildCommand": "npx turbo build --filter=work-control-portal --force && rm -rf dist && cp -r apps/web-portal/dist dist",
+    "buildCommand": "npx turbo build --filter=work-control-portal --force",
     "installCommand": "npx pnpm@9.15.4 install --no-frozen-lockfile",
     "outputDirectory": "dist",
     "framework": null,
