@@ -34,16 +34,28 @@ export async function initDbIfNeeded() {
     if (!autoInit) return;
 
     // Apply schema
-    const schemaPath = path.join(__dirname, "sql", "schema.sql");
-    // When compiled to dist, schema will not be there unless copied.
-    // In dev, we run from src. So also try src path fallback.
-    const srcSchemaPath = path.join(process.cwd(), "apps", "api", "src", "sql", "schema.sql");
+    const paths = [
+        path.join(__dirname, "sql", "schema.sql"), // Standard relative
+        path.join(process.cwd(), "apps", "api", "src", "sql", "schema.sql"), // Local dev / Mono root
+        path.join(process.cwd(), "api", "src", "sql", "schema.sql"), // Post-dist structure
+        path.join(process.cwd(), "sql", "schema.sql"), // Flat structure
+        path.join(__dirname, "..", "src", "sql", "schema.sql"), // Another relative
+    ];
 
-    const p = fs.existsSync(schemaPath) ? schemaPath : srcSchemaPath;
-    if (!fs.existsSync(p)) {
-        console.warn("[db] schema.sql not found, skipping auto init");
+    let p = "";
+    for (const cand of paths) {
+        if (fs.existsSync(cand)) {
+            p = cand;
+            break;
+        }
+    }
+
+    if (!p) {
+        console.warn("[db] schema.sql not found in any of:", paths);
         return;
     }
+
+    console.log("[db] found schema at:", p);
 
     const sql = fs.readFileSync(p, "utf8");
     await pool.query(sql);
