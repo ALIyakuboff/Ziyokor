@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "buildCommand": "pnpm --filter work-control-portal build && cp -r ../web-portal/dist . && echo 'CHECK API:' && ls -F api && rm -f package-lock.json",
+    "buildCommand": "pnpm --filter work-control-portal build && cp -r apps/web-portal/dist/* dist/ && echo 'Build Done'",
     "installCommand": "NODE_ENV=development npx pnpm@9.15.4 install --no-frozen-lockfile",
     "outputDirectory": "dist",
     "framework": null,
@@ -8,6 +8,10 @@
         {
             "source": "/socket.io/(.*)",
             "destination": "/api/index"
+        },
+        {
+            "source": "/api/simple",
+            "destination": "/api/simple"
         },
         {
             "source": "/api/debug-vercel",

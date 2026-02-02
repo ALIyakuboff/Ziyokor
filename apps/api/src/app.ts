@@ -10,7 +10,7 @@ import { systemRouter } from "./routes/system.routes";
 export function createApp() {
     const app = express();
 
-    app.use((req: express.Request, _res: express.Response, next: express.NextFunction) => {
+    app.use((req: any, _res: express.Response, next: express.NextFunction) => {
         console.log(`[api] ${req.method} ${req.url}`);
         next();
     });
@@ -38,7 +38,7 @@ export function createApp() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     // error handler
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    app.use((err: any, _req: express.Request, res: any, _next: express.NextFunction) => {
         console.error("[api] error:", err);
         const status = Number(err?.status || 500);
         res.status(status).json({ error: err?.code || "INTERNAL_ERROR", message: err?.message || "Error" });
