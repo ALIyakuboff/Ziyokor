@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "buildCommand": "npm run vercel-build",
+    "buildCommand": "pnpm vercel-build",
     "installCommand": "NODE_ENV=development npx pnpm@9.15.4 install --no-frozen-lockfile",
     "outputDirectory": "dist",
     "framework": null,

@@ -6,7 +6,7 @@
         "build": "turbo run build",
         "lint": "turbo run lint",
         "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-        "vercel-build": "cd apps/web-portal && vite build && cd ../.. && rm -rf dist && mkdir -p dist && cp -r apps/web-portal/dist/* dist"
+        "vercel-build": "cd apps/web-portal && pnpm run build && cd ../.. && rm -rf dist && mkdir -p dist && cp -r apps/web-portal/dist/* dist"
     },
     "dependencies": {
         "bcryptjs": "^2.4.3",
