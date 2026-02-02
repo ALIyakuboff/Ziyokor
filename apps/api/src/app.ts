@@ -24,12 +24,12 @@ export function createApp() {
     );
     app.use(express.json({ limit: "1mb" }));
 
-    app.get("/api/health", (_req: express.Request, res: express.Response) => res.json({ ok: true }));
+    app.get(["/api/health", "/health"], (_req: express.Request, res: express.Response) => res.json({ ok: true }));
 
-    app.use("/api/auth", authRouter);
-    app.use("/api/tasks", tasksRouter);
-    app.use("/api/admin", adminRouter);
-    app.use("/api/system", systemRouter);
+    app.use(["/api/auth", "/auth"], authRouter);
+    app.use(["/api/tasks", "/tasks"], tasksRouter);
+    app.use(["/api/admin", "/admin"], adminRouter);
+    app.use(["/api/system", "/system"], systemRouter);
 
     // 404
     app.use((_req: express.Request, res: express.Response) => { res.status(404).json({ error: "NOT_FOUND" }); });
