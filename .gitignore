@@ -31,3 +31,4 @@ Thumbs.db
 # ignore accidental js from ts
 apps/api/src/**/*.js
 apps/api/api/**/*.js
+.env*.local
