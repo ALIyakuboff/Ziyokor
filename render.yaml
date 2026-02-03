@@ -5,7 +5,7 @@ services:
     runtime: node
     plan: free
     buildCommand: pnpm install --no-frozen-lockfile && pnpm run build --filter=work-control-api
-    startCommand: node apps/api/dist/main.js
+    startCommand: node apps/api/dist/src/main.js
     envVars:
       - key: NODE_VERSION
         value: 20
