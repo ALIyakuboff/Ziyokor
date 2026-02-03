@@ -10,7 +10,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }>
     problem: { label: "Muammo", color: "#ff4d4f", icon: AlertTriangle },
     testing: { label: "Testing", color: "#faad14", icon: HelpCircle },
     done: { label: "Bajarildi", color: "#52c41a", icon: Check },
-    missed: { label: "O'tkazib yuborildi", color: "#ff4d4f", icon: AlertTriangle }
+    missed: { label: "Bajarilmadi", color: "#ff4d4f", icon: AlertTriangle }
 };
 
 export default function TaskListProject({ items, onRefresh }: { items: Task[]; onRefresh: () => void }) {

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Trash2, MessageCircle, Check, Play } from "lucide-react";
 import { createMyTask, deleteTask, doneTask, startTask, Task } from "../../api/tasks";
+import { todayISO } from "../../utils/date";
 import CommentModalWhite from "./CommentModalWhite";
 import TaskTimer from "./TaskTimer";
 
@@ -16,6 +17,8 @@ export default function TaskListNormal({
     const [newTitle, setNewTitle] = useState("");
     const [loadingId, setLoadingId] = useState<string | null>(null);
     const [commentFor, setCommentFor] = useState<Task | null>(null);
+
+    const isPast = dayISO < todayISO();
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -71,16 +74,18 @@ export default function TaskListNormal({
 
     return (
         <div className="taskList">
-            <form onSubmit={handleAdd} className="addRow">
-                <input
-                    className="input"
-                    style={{ flex: 1, border: 'none', background: 'transparent', height: 32, fontSize: 13 }}
-                    placeholder="+ Yangi vazifa..."
-                    value={newTitle}
-                    onChange={e => setNewTitle(e.target.value)}
-                    disabled={loadingId === "add"}
-                />
-            </form>
+            {!isPast && (
+                <form onSubmit={handleAdd} className="addRow">
+                    <input
+                        className="input"
+                        style={{ flex: 1, border: 'none', background: 'transparent', height: 32, fontSize: 13 }}
+                        placeholder="+ Yangi vazifa..."
+                        value={newTitle}
+                        onChange={e => setNewTitle(e.target.value)}
+                        disabled={loadingId === "add"}
+                    />
+                </form>
+            )}
 
             {items.length === 0 && <div className="muted small" style={{ textAlign: 'center', padding: '10px 0' }}>Hozircha ish yo‘q</div>}
 

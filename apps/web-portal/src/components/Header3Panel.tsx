@@ -10,6 +10,7 @@ import DayMandatoryModal from "./DayMandatoryModal";
 import RecurringTaskModal from "./RecurringTaskModal";
 import ReportModal from "./ReportModal";
 import ProjectTaskModal from "./ProjectTaskModal";
+import BulkDeleteModal from "./BulkDeleteModal";
 import { todayISO } from "../utils/date";
 
 type Worker = { id: string; full_name: string };
@@ -36,6 +37,7 @@ export default function Header3Panel({ workers, workerId, anchor }: { workers: W
     const [range, setRange] = useState<"week" | "month" | "year">("week");
     const [pdfModalOpen, setPdfModalOpen] = useState(false);
     const [projectModalOpen, setProjectModalOpen] = useState(false);
+    const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
     const adminName = user?.full_name || "Admin";
 
@@ -162,6 +164,16 @@ export default function Header3Panel({ workers, workerId, anchor }: { workers: W
                     >
                         Project
                     </button>
+
+                    {/* Bulk Delete Button */}
+                    <button
+                        className="linkBtn"
+                        onClick={() => setBulkDeleteOpen(true)}
+                        title="Vazifalarni ommaviy o'chirish"
+                        style={{ fontSize: "16px", color: "white", backgroundColor: "#ff4d4f", borderRadius: "4px", padding: "4px 12px", marginLeft: "8px", fontWeight: "bold" }}
+                    >
+                        O'chirish
+                    </button>
                 </div>
 
                 <button className="btn mini" onClick={logout}>Chiqish</button>
@@ -246,6 +258,17 @@ export default function Header3Panel({ workers, workerId, anchor }: { workers: W
                     onSuccess={() => {
                         setProjectModalOpen(false);
                         alert("Project topshiriq qo'shildi");
+                        window.location.reload();
+                    }}
+                />
+            )}
+
+            {bulkDeleteOpen && (
+                <BulkDeleteModal
+                    workers={workers}
+                    onClose={() => setBulkDeleteOpen(false)}
+                    onSuccess={() => {
+                        setBulkDeleteOpen(false);
                         window.location.reload();
                     }}
                 />

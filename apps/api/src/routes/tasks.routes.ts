@@ -259,6 +259,12 @@ tasksRouter.get("/me/week", async (req: any, res: any, next: any) => {
         const me = (req as any).user as { id: string };
         await syncCarryovers(me.id);
 
+        // Proactively generate mandatory tasks from templates for each day in the viewed week
+        const { generateMandatoryJob } = require("../cron/generateMandatory");
+        for (const d of days) {
+            await generateMandatoryJob(d);
+        }
+
         const r = await query<any>(
             `SELECT t.*, (SELECT COUNT(*)::int FROM task_comments WHERE task_id = t.id) as comment_count
        FROM tasks t

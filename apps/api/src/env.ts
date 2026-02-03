@@ -1,3 +1,4 @@
+process.env.TZ = "Asia/Tashkent";
 import dotenv from "dotenv";
 import path from "path";
 

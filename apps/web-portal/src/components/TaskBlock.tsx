@@ -10,6 +10,13 @@ export default function TaskBlock({ items, tone, onDelete }: { items: any[]; ton
         return <div className="muted small">—</div>;
     }
 
+    const statusMap: any = {
+        pending: "Kutilmoqda",
+        in_progress: "Bajarilmoqda",
+        done: "Bajarildi",
+        missed: "Bajarilmadi",
+    };
+
     return (
         <div className={`taskList ${tone === "danger" ? "carryoverBox" : ""}`}>
             {items.map((t) => {
@@ -41,7 +48,7 @@ export default function TaskBlock({ items, tone, onDelete }: { items: any[]; ton
                                 </button>
                             )}
 
-                            <div className="badge">{t.status}</div>
+                            <div className="badge">{statusMap[t.status] || t.status}</div>
                         </div>
                     </div>
                 );

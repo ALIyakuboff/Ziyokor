@@ -1,9 +1,4 @@
-import dotenv from "dotenv";
-import { resolve } from "path";
-
-// Load .env relative to this script's location
-dotenv.config({ path: resolve(__dirname, "../../.env") });
-
+import "../env";
 import { query, pool } from "../db";
 
 async function run() {

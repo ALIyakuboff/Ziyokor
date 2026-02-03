@@ -10,9 +10,11 @@ import { normalizePhoneDigits, last4Digits } from "../utils/phone";
 
 // Socket.IO is optional (not available in serverless)
 let emitToUser: any = () => { };
+let emitToRole: any = () => { };
 try {
     const socketModule = require("../socket");
     emitToUser = socketModule.emitToUser;
+    emitToRole = socketModule.emitToRole;
 } catch (e) {
     console.log("[admin] Socket.IO not available (serverless mode)");
 }
@@ -22,6 +24,53 @@ import { generateMandatoryJob } from "../cron/generateMandatory";
 export const adminRouter = Router();
 
 adminRouter.use(authRequired);
+
+// Bulk delete tasks for a worker by type and date onwards
+adminRouter.post("/bulk-delete-tasks", requireRole("admin"), async (req: any, res: any, next: any) => {
+    try {
+        const { worker_id, task_type, start_date } = mustParse(
+            z.object({
+                worker_id: z.string().uuid(),
+                task_type: z.enum(["mandatory", "normal", "project", "all"]),
+                start_date: zISODate,
+            }),
+            req.body
+        );
+
+        const today = todayISO();
+        if (start_date < today) {
+            return res.status(403).json({ error: "CANNOT_DELETE_PAST_TASKS" });
+        }
+
+        let whereClause = "user_id = $1 AND visible_date >= $2::date AND deleted_at IS NULL";
+        const params: any[] = [worker_id, start_date];
+
+        if (task_type === "mandatory") {
+            whereClause += " AND is_mandatory = true AND is_project = false";
+        } else if (task_type === "normal") {
+            whereClause += " AND is_mandatory = false AND is_project = false";
+        } else if (task_type === "project") {
+            whereClause += " AND is_project = true";
+        }
+
+        const result = await query(
+            `UPDATE tasks SET deleted_at = NOW(), deleted_by_id = $3 WHERE ${whereClause}`,
+            [...params, (req as any).user.id]
+        );
+
+        console.log(`[admin] bulk-delete-tasks worker_id=${worker_id} type=${task_type} deleted_count=${result.rowCount}`);
+
+        if (result.rowCount > 0) {
+            // Emit real-time events
+            emitToUser(worker_id, "task:deleted", { bulk: true });
+            emitToRole("admin", "task:deleted", { bulk: true, worker_id });
+        }
+
+        res.json({ ok: true, deleted_count: result.rowCount });
+    } catch (e) {
+        next(e);
+    }
+});
 
 // Create Recurring Task Template (Continuing Mandatory)
 adminRouter.post("/templates", requireRole("admin"), async (req: any, res: any, next: any) => {
@@ -155,6 +204,12 @@ adminRouter.get("/workers/:id/week", requireRole("admin"), async (req: any, res:
 
         await syncCarryovers(workerId);
 
+        // Proactively generate mandatory tasks from templates for each day in the viewed week
+        const { generateMandatoryJob } = require("../cron/generateMandatory");
+        for (const d of days) {
+            await generateMandatoryJob(d);
+        }
+
         const r = await query<any>(
             `SELECT t.*, (SELECT COUNT(*)::int FROM task_comments WHERE task_id = t.id) as comment_count
        FROM tasks t
@@ -263,8 +318,9 @@ adminRouter.delete("/tasks/:id", requireRole("admin"), async (req: any, res: any
 
         await query(`UPDATE tasks SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL`, [id]);
 
-        // Emit real-time event to the task owner
+        // Emit real-time event to the task owner and admins
         emitToUser(task.user_id, "task:deleted", { taskId: id });
+        emitToRole("admin", "task:deleted", { taskId: id, userId: task.user_id });
 
         res.json({ ok: true });
     } catch (e) {

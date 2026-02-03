@@ -22,7 +22,7 @@ export async function generateMandatoryJob(date: string) {
         // if already exists for that template/date, skip
         const exists = await query(
             `SELECT id FROM tasks
-       WHERE template_id=$1 AND assigned_date=$2::date AND deleted_at IS NULL
+       WHERE template_id=$1 AND assigned_date=$2::date
        LIMIT 1`,
             [tpl.id, date]
         );

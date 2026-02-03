@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS mandatory_task_templates (
   start_date DATE NULL,
   end_date DATE NULL,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  is_mandatory BOOLEAN NOT NULL DEFAULT TRUE,
   created_by_admin_id UUID NULL REFERENCES users(id) ON DELETE SET NULL,
   deleted_at TIMESTAMPTZ NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

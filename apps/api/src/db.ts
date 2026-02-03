@@ -20,6 +20,10 @@ export const pool = new Pool({
         : false
 });
 
+pool.on('connect', (client) => {
+    client.query("SET timezone TO 'Asia/Tashkent'");
+});
+
 export async function query<T = any>(text: string, params?: any[]): Promise<{ rows: T[]; rowCount: number | null }> {
     try {
         return await pool.query(text, params) as any;
