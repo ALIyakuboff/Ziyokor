@@ -217,7 +217,7 @@ adminRouter.get("/workers/:id/week", requireRole("admin"), async (req: any, res:
         const r = await query<any>(
             `SELECT t.*, (SELECT COUNT(*)::int FROM task_comments WHERE task_id = t.id) as comment_count
        FROM tasks t
-       WHERE t.user_id = $1 AND t.visible_date = ANY($2:: date[])
+       WHERE t.user_id = $1 AND t.visible_date = ANY($2::date[])
          AND t.deleted_at IS NULL
        ORDER BY t.visible_date ASC,
     CASE
@@ -474,8 +474,8 @@ adminRouter.get("/analytics", async (req: any, res: any, next: any) => {
             SELECT title, status, is_mandatory, visible_date, assigned_date
             FROM tasks
             WHERE deleted_at IS NULL
-              AND visible_date >= $1:: date - INTERVAL '2 days' 
-              AND visible_date <= $2:: date + INTERVAL '2 days'
+              AND visible_date >= $1::date - INTERVAL '2 days' 
+              AND visible_date <= $2::date + INTERVAL '2 days'
             ${targetWorkerId ? 'AND user_id=$3' : ''}
 `;
 
