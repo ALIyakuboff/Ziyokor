@@ -1,6 +1,6 @@
 import { apiFetch } from "./client";
 
-export type Worker = { id: string; full_name: string };
+export type Worker = { id: string; full_name: string; is_active?: boolean };
 
 export type Task = {
     id: string;

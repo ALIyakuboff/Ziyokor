@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { hardDeleteWorker } from "../api/admin";
 
-type Worker = { id: string; full_name: string };
+type Worker = { id: string; full_name: string; is_active?: boolean };
 
 export default function AdminDropdown({
     workers,
@@ -64,9 +64,9 @@ export default function AdminDropdown({
 
                 {workers.length === 0 && <div className="muted small padSm">Ishchi yo‘q</div>}
                 {workers.map((w) => (
-                    <div key={w.id} className="dropdownItemRow" style={{ display: "flex", alignItems: "center" }}>
+                    <div key={w.id} className="dropdownItemRow" style={{ display: "flex", alignItems: "center", opacity: w.is_active === false ? 0.5 : 1 }}>
                         <button className="dropdownItem" style={{ flex: 1, textAlign: "left" }} onClick={() => onPick(w.id)}>
-                            {w.full_name}
+                            {w.full_name} {w.is_active === false && "(O'chirilgan)"}
                         </button>
                         {editMode && (
                             <button
