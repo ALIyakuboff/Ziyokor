@@ -21,7 +21,7 @@ export default function BulkDeleteModal({ workers, onClose, onSuccess }: BulkDel
 
         const today = todayISO();
         if (startDate < today) {
-            alert("O'tmishdagi ishlarni o'chirib bo'lmaydi");
+            alert("Oldingi ishlarni o'chirib bo'lmaydi");
             return;
         }
 
