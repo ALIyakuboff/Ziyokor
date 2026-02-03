@@ -34,7 +34,8 @@ export async function generateMandatoryJob(date: string) {
          is_carryover, carryover_from_date, template_id, one_off_by_admin,
          created_by, created_by_id)
        VALUES
-        ($1,$2,$3,'pending',$4,$4,false,NULL,$5,false,'admin',$6)`,
+        ($1,$2,$3,'pending',$4,$4,false,NULL,$5,false,'admin',$6)
+       ON CONFLICT (template_id, assigned_date) DO NOTHING`,
             [tpl.user_id, tpl.title, tpl.is_mandatory, date, tpl.id, tpl.created_by_admin_id]
         );
         created++;

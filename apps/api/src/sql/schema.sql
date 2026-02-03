@@ -70,7 +70,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_user_visible ON tasks(user_id, visible_date
 CREATE INDEX IF NOT EXISTS idx_tasks_user_assigned ON tasks(user_id, assigned_date);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_deleted ON tasks(deleted_at);
-CREATE INDEX IF NOT EXISTS idx_tasks_template_assigned ON tasks(template_id, assigned_date);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_template_assigned ON tasks(template_id, assigned_date) WHERE template_id IS NOT NULL;
 
 -- COMMENTS
 CREATE TABLE IF NOT EXISTS task_comments (
