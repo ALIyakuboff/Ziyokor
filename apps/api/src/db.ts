@@ -67,40 +67,42 @@ export async function initDbIfNeeded() {
 
     // --- MIGRATIONS ---
 
-    // 1. Cleanup duplicate mandatory tasks (preventing Unique Index creation)
+    // 1. Aggressive Cleanup: Delete ANY duplicate/conflicting mandatory tasks 
+    // This removes duplicates even if they were marked as "deleted" to allow index creation.
     try {
-        console.log("[db] Migration: Cleaning up duplicate mandatory tasks...");
+        console.log("[db] Aggressive Migration: Cleaning up ALL duplicate mandatory tasks...");
         const cleanupRes = await query(`
             DELETE FROM tasks
             WHERE id IN (
                 SELECT id FROM (
                     SELECT id, row_number() OVER (PARTITION BY template_id, assigned_date ORDER BY created_at ASC) as rn
                     FROM tasks
-                    WHERE template_id IS NOT NULL AND deleted_at IS NULL
+                    WHERE template_id IS NOT NULL
                 ) t
                 WHERE t.rn > 1
             )
         `);
-        if (cleanupRes.rowCount && cleanupRes.rowCount > 0) {
-            console.log(`[db] Migration: Deleted ${cleanupRes.rowCount} duplicate tasks.`);
-        }
+        console.log(`[db] Aggressive Migration: Deleted ${cleanupRes.rowCount || 0} duplicate tasks.`);
     } catch (err: any) {
-        console.error("[db] Migration cleanup error:", err.message);
+        console.error("[db] Aggressive Migration cleanup error:", err.message);
     }
 
-    // 2. Ensure Unique Index (Post-cleanup)
+    // 2. Force Unique Index Creation
     try {
-        console.log("[db] Migration: Ensuring Unique Index idx_tasks_tpl_assigned_unique...");
+        console.log("[db] Aggressive Migration: Forcing Unique Index idx_tasks_tpl_assigned_unique...");
+        // Drop any potential old versions first
+        await query(`DROP INDEX IF EXISTS idx_tasks_template_assigned`);
+        await query(`DROP INDEX IF EXISTS idx_tasks_tpl_assigned_unique`);
+
         await query(`
-            CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_tpl_assigned_unique 
+            CREATE UNIQUE INDEX idx_tasks_tpl_assigned_unique 
             ON tasks(template_id, assigned_date) 
             WHERE template_id IS NOT NULL;
         `);
-        console.log("[db] Migration: Unique Index verified/created.");
+        console.log("[db] Aggressive Migration: Unique Index successfully created.");
     } catch (err: any) {
-        console.error("[db] Migration index error (42P10 risk):", err.message);
+        console.error("[db] Aggressive Migration index error (CRITICAL 42P10):", err.message);
     }
-
     // ONE-TIME CLEANUP for hidden duplicate phone
     try {
         const cleanupPhone = "998905970105";
