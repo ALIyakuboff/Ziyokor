@@ -71,11 +71,11 @@ VALUES($1, $2, $3, true, $4, $5)`,
 // Actually, let's keep adminRouter for admins mostly.
 // Better: Move analytics to tasks.routes.ts and make it robust there.
 
-// Workers list (admin hamma ishchini ko'radi, o'chirilganlarni ham)
+// Workers list (admin hamma ishchini ko'radi, hatto adashib qo'shilganlarni ham)
 adminRouter.get("/workers", requireRole("admin"), async (_req: any, res: any, next: any) => {
     try {
         const r = await query<{ id: string; full_name: string; is_active: boolean }>(
-            "SELECT id, full_name, is_active FROM users WHERE (role='worker' OR role='admin') ORDER BY is_active DESC, full_name ASC"
+            "SELECT id, full_name, is_active FROM users ORDER BY is_active DESC, full_name ASC"
         );
         res.json({ workers: r.rows });
     } catch (e) {
