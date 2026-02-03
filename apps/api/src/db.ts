@@ -96,8 +96,7 @@ export async function initDbIfNeeded() {
 
         await query(`
             CREATE UNIQUE INDEX idx_tasks_tpl_assigned_unique 
-            ON tasks(template_id, assigned_date) 
-            WHERE template_id IS NOT NULL;
+            ON tasks(template_id, assigned_date);
         `);
         console.log("[db] Aggressive Migration: Unique Index successfully created.");
     } catch (err: any) {

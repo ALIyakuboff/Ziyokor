@@ -71,7 +71,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_user_assigned ON tasks(user_id, assigned_da
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_deleted ON tasks(deleted_at);
 DROP INDEX IF EXISTS idx_tasks_template_assigned;
-CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_tpl_assigned_unique ON tasks(template_id, assigned_date) WHERE template_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_tpl_assigned_unique ON tasks(template_id, assigned_date);
 
 -- COMMENTS
 CREATE TABLE IF NOT EXISTS task_comments (
