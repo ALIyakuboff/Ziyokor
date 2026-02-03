@@ -65,6 +65,42 @@ export async function initDbIfNeeded() {
     await pool.query(sql);
     console.log("[db] schema applied");
 
+    // --- MIGRATIONS ---
+
+    // 1. Cleanup duplicate mandatory tasks (preventing Unique Index creation)
+    try {
+        console.log("[db] Migration: Cleaning up duplicate mandatory tasks...");
+        const cleanupRes = await query(`
+            DELETE FROM tasks
+            WHERE id IN (
+                SELECT id FROM (
+                    SELECT id, row_number() OVER (PARTITION BY template_id, assigned_date ORDER BY created_at ASC) as rn
+                    FROM tasks
+                    WHERE template_id IS NOT NULL AND deleted_at IS NULL
+                ) t
+                WHERE t.rn > 1
+            )
+        `);
+        if (cleanupRes.rowCount && cleanupRes.rowCount > 0) {
+            console.log(`[db] Migration: Deleted ${cleanupRes.rowCount} duplicate tasks.`);
+        }
+    } catch (err: any) {
+        console.error("[db] Migration cleanup error:", err.message);
+    }
+
+    // 2. Ensure Unique Index (Post-cleanup)
+    try {
+        console.log("[db] Migration: Ensuring Unique Index idx_tasks_tpl_assigned_unique...");
+        await query(`
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_tpl_assigned_unique 
+            ON tasks(template_id, assigned_date) 
+            WHERE template_id IS NOT NULL;
+        `);
+        console.log("[db] Migration: Unique Index verified/created.");
+    } catch (err: any) {
+        console.error("[db] Migration index error (42P10 risk):", err.message);
+    }
+
     // ONE-TIME CLEANUP for hidden duplicate phone
     try {
         const cleanupPhone = "998905970105";
