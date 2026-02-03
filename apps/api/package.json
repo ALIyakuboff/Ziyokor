@@ -5,7 +5,7 @@
     "type": "commonjs",
     "scripts": {
         "dev": "tsx watch src/main.ts",
-        "start": "node dist/main.js",
+        "start": "node dist/src/main.js",
         "build": "tsc -p tsconfig.json",
         "lint": "echo \"(optional) add eslint\""
     },
