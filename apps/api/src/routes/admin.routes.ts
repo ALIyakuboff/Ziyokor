@@ -205,9 +205,13 @@ adminRouter.get("/workers/:id/week", requireRole("admin"), async (req: any, res:
         await syncCarryovers(workerId);
 
         // Proactively generate mandatory tasks from templates for each day in the viewed week
+        // RESTRICTION: Only generate for days in the CURRENT real-world week
         const { generateMandatoryJob } = require("../cron/generateMandatory");
+        const currentWeekDays = weekDaysMonToSat(todayISO());
         for (const d of days) {
-            await generateMandatoryJob(d);
+            if (currentWeekDays.includes(d)) {
+                await generateMandatoryJob(d);
+            }
         }
 
         const r = await query<any>(
