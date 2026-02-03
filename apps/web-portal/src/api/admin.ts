@@ -76,6 +76,12 @@ export async function deleteTaskAdmin(taskId: string) {
     });
 }
 
+export async function hardDeleteWorker(workerId: string) {
+    return apiFetch<any>(`/admin/workers/${workerId}`, {
+        method: "DELETE"
+    });
+}
+
 export async function getFullReportData(start: string, end: string) {
     return apiFetch<{ start: string; end: string; data: { worker_name: string; tasks: Task[] }[] }>(
         `/admin/reports/full?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`

@@ -128,6 +128,19 @@ adminRouter.patch("/workers/:id/deactivate", requireRole("admin"), async (req: a
     }
 });
 
+// Hard delete worker
+adminRouter.delete("/workers/:id", requireRole("admin"), async (req: any, res: any, next: any) => {
+    try {
+        const id = req.params.id;
+        // schema.sql defines USERS.id as UUID PRIMARY KEY.
+        // It also defines cascades for tasks, comments, and templates.
+        await query("DELETE FROM users WHERE id=$1", [id]);
+        res.json({ ok: true });
+    } catch (e) {
+        next(e);
+    }
+});
+
 // Admin: worker week view (6 cards)
 adminRouter.get("/workers/:id/week", requireRole("admin"), async (req: any, res: any, next: any) => {
     try {

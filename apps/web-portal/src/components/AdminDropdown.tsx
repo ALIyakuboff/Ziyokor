@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { deactivateWorker } from "../api/admin";
+import { hardDeleteWorker } from "../api/admin";
 
 type Worker = { id: string; full_name: string };
 
@@ -31,10 +31,10 @@ export default function AdminDropdown({
         };
     }, [onClose]);
 
-    async function handleDeactivate(id: string, name: string) {
-        if (!confirm(`${name} o'chirilsinmi? (Ma'lumotlari saqlanib qoladi, lekin ro'yxatda ko'rinmaydi)`)) return;
+    async function handleDelete(id: string, name: string) {
+        if (!confirm(`${name} serverdan BUTUNLAY o'chirilsinmi? (Barcha topshiriqlari va izohlari ham o'chib ketadi!)`)) return;
         try {
-            await deactivateWorker(id);
+            await hardDeleteWorker(id);
             window.location.reload();
         } catch (e: any) {
             alert("Xato: " + (e?.message || "O'chirib bo'lmadi"));
@@ -72,7 +72,7 @@ export default function AdminDropdown({
                             <button
                                 className="linkBtn"
                                 style={{ padding: "0 10px", color: "#ff4d4d" }}
-                                onClick={() => handleDeactivate(w.id, w.full_name)}
+                                onClick={() => handleDelete(w.id, w.full_name)}
                             >
                                 🗑️
                             </button>
