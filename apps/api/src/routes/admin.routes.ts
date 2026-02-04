@@ -92,9 +92,9 @@ adminRouter.post("/templates", requireRole("admin"), async (req: any, res: any, 
             for (const title of body.titles) {
                 await query(
                     `INSERT INTO mandatory_task_templates
-    (user_id, title, recurrence_type, is_active, created_by_admin_id, is_mandatory)
-VALUES($1, $2, $3, true, $4, $5)`,
-                    [uid, title, body.recurrence, me.id, body.is_mandatory]
+    (user_id, title, recurrence_type, is_active, created_by_admin_id, is_mandatory, start_date)
+VALUES($1, $2, $3, true, $4, $5, $6)`,
+                    [uid, title, body.recurrence, me.id, body.is_mandatory, todayISO()]
                 );
                 createdCount++;
             }
@@ -204,9 +204,6 @@ adminRouter.get("/workers/:id/week", requireRole("admin"), async (req: any, res:
 
         await syncCarryovers(workerId);
 
-        // Proactively generate mandatory tasks from templates for each day in the viewed week
-        // RESTRICTION: Only generate for days in the CURRENT real-world week
-        const { generateMandatoryJob } = require("../cron/generateMandatory");
         const currentWeekDays = weekDaysMonToSat(todayISO());
         for (const d of days) {
             if (currentWeekDays.includes(d)) {

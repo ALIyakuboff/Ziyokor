@@ -15,6 +15,7 @@ try {
     console.log("[tasks] Socket.IO not available (serverless mode)");
 }
 import { DateTime } from "luxon";
+import { generateMandatoryJob } from "../cron/generateMandatory";
 
 export const tasksRouter = Router();
 
@@ -259,9 +260,6 @@ tasksRouter.get("/me/week", async (req: any, res: any, next: any) => {
         const me = (req as any).user as { id: string };
         await syncCarryovers(me.id);
 
-        // Proactively generate mandatory tasks from templates for each day in the viewed week
-        // RESTRICTION: Only generate for days in the CURRENT real-world week
-        const { generateMandatoryJob } = require("../cron/generateMandatory");
         const currentWeekDays = weekDaysMonToSat(todayISO());
         for (const d of days) {
             if (currentWeekDays.includes(d)) {
