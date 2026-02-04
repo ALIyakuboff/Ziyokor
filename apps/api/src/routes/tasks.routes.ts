@@ -614,7 +614,10 @@ tasksRouter.put("/:id/comments", async (req: any, res: any, next: any) => {
 
         const date = task.visible_date;
         const closed = await query("SELECT date FROM day_closures WHERE date=$1 LIMIT 1", [date]);
-        if (closed.rows.length) return res.status(403).json({ error: "DAY_CLOSED" });
+        if (closed.rows.length) {
+            console.warn(`[tasks] Comment rejected: DAY_CLOSED date=${date} task_id=${id} worker_id=${me.id}`);
+            return res.status(403).json({ error: "DAY_CLOSED", details: { date, server_today: todayISO() } });
+        }
 
         // REPLACE logic
         await query("DELETE FROM task_comments WHERE task_id=$1", [id]);

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { DateTime } from "luxon";
 import cron from "node-cron";
 import { authRequired, requireRole } from "../auth";
 import { closeDayJob } from "../cron/closeDay";
@@ -10,6 +11,17 @@ import { initDbIfNeeded } from "../db";
 export const systemRouter = Router();
 
 // Manual trigger endpoints (admin only)
+systemRouter.get("/health", async (_req, res) => {
+    res.json({
+        ok: true,
+        now: DateTime.now().setZone(APP_TZ).toISO(),
+        today: todayISO(),
+        timezone: APP_TZ,
+        env_tz: process.env.TZ,
+        node_version: process.versions.node
+    });
+});
+
 // Public init endpoint (use with caution, or add a secret header check if needed)
 systemRouter.post("/init-db", async (req: any, res: any) => {
     try {
