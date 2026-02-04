@@ -60,13 +60,13 @@ adminRouter.post("/bulk-delete-tasks", requireRole("admin"), async (req: any, re
 
         console.log(`[admin] bulk-delete-tasks worker_id=${worker_id} type=${task_type} deleted_count=${result.rowCount}`);
 
-        if (result.rowCount > 0) {
+        if (result.rowCount && result.rowCount > 0) {
             // Emit real-time events
             emitToUser(worker_id, "task:deleted", { bulk: true });
             emitToRole("admin", "task:deleted", { bulk: true, worker_id });
         }
 
-        res.json({ ok: true, deleted_count: result.rowCount });
+        res.json({ ok: true, deleted_count: result.rowCount || 0 });
     } catch (e) {
         next(e);
     }
@@ -205,9 +205,11 @@ adminRouter.get("/workers/:id/week", requireRole("admin"), async (req: any, res:
         await syncCarryovers(workerId);
 
         const currentWeekDays = weekDaysMonToSat(todayISO());
-        for (const d of days) {
-            if (currentWeekDays.includes(d)) {
-                await generateMandatoryJob(d);
+        if (currentWeekDays) {
+            for (const d of days) {
+                if (currentWeekDays.includes(d)) {
+                    await generateMandatoryJob(d);
+                }
             }
         }
 

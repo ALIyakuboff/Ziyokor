@@ -261,9 +261,11 @@ tasksRouter.get("/me/week", async (req: any, res: any, next: any) => {
         await syncCarryovers(me.id);
 
         const currentWeekDays = weekDaysMonToSat(todayISO());
-        for (const d of days) {
-            if (currentWeekDays.includes(d)) {
-                await generateMandatoryJob(d);
+        if (currentWeekDays) {
+            for (const d of days) {
+                if (currentWeekDays.includes(d)) {
+                    await generateMandatoryJob(d);
+                }
             }
         }
 
