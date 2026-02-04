@@ -1,12 +1,21 @@
 import { DateTime } from "luxon";
 import { query } from "../db";
-import { APP_TZ } from "../utils/date";
+import { APP_TZ, todayISO } from "../utils/date";
 
 // Close day:
 // - insert into day_closures if not exists
 // - mandatory tasks (assigned_date=date) not done => missed (do not carryover)
 // - worker tasks (is_mandatory=false) not done => carryover to tomorrow as red section by visible_date shift
-export async function closeDayJob(date: string) {
+export async function closeDayJob(date: string, force: boolean = false) {
+    const today = todayISO();
+    if (date === today && !force) {
+        const hour = DateTime.now().setZone(APP_TZ).hour;
+        if (hour < 20) {
+            console.warn(`[job] closeDay REJECTED for today (${date}) at hour ${hour} (Safeguard < 20:00)`);
+            return { ok: false, error: "TOO_EARLY_FOR_TODAY" };
+        }
+    }
+
     // ensure closure record exists
     await query(
         `INSERT INTO day_closures (date, closed_at, closed_by)

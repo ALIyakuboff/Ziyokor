@@ -8,6 +8,13 @@ import { purge3MonthsJob } from "../cron/purge3Months";
 import { APP_TZ, todayISO } from "../utils/date";
 import { initDbIfNeeded, query } from "../db";
 
+// Helper middleware for Vercel Crons or Admin
+const cronOrAdmin = (req: any, res: any, next: any) => {
+    const isCron = req.headers["x-vercel-cron"] === "1";
+    if (isCron) return next();
+    return requireRole("admin")(req, res, next);
+};
+
 export const systemRouter = Router();
 
 // Manual trigger endpoints (admin only)
@@ -43,12 +50,17 @@ systemRouter.post("/init-db", async (req: any, res: any) => {
     }
 });
 
-// Helper middleware for Vercel Crons or Admin
-const cronOrAdmin = (req: any, res: any, next: any) => {
-    const isCron = req.headers["x-vercel-cron"] === "1";
-    if (isCron) return next();
-    return requireRole("admin")(req, res, next);
-};
+systemRouter.post("/jobs/unclose-day", authRequired, cronOrAdmin, async (req: any, res: any, next: any) => {
+    try {
+        const date = (req.query.date as string) || todayISO();
+        await query("DELETE FROM day_closures WHERE date=$1::date", [date]);
+        // Also revert tasks that were marked as missed today? 
+        // For now, simple delete of closure suffices to unblock work.
+        res.json({ ok: true, message: `Day ${date} unclosed` });
+    } catch (e) {
+        next(e);
+    }
+});
 
 systemRouter.post("/jobs/generate-mandatory", authRequired, cronOrAdmin, async (req: any, res: any, next: any) => {
     try {
@@ -96,11 +108,12 @@ export function startCrons() {
         { timezone: APP_TZ }
     );
 
-    // 23:55 close day
+    // 23:55 Tashkent: close day
     cron.schedule(
         "55 23 * * *",
         async () => {
             const date = todayISO();
+            console.log(`[cron] Triggering closeDay for ${date} (Tashkent 23:55)`);
             await closeDayJob(date);
         },
         { timezone: APP_TZ }
