@@ -13,27 +13,12 @@ export default function TaskListMandatory({
 }) {
     const [loadingId, setLoadingId] = useState<string | null>(null);
     const [commentFor, setCommentFor] = useState<Task | null>(null);
+    const [isCompleting, setIsCompleting] = useState(false);
     const [commentSavedIds, setCommentSavedIds] = useState<Record<string, boolean>>({});
 
-    const handleDone = async (task: Task) => {
-        // Requirement: Must have comments to finish mandatory task
-        const commented = (task.comment_count !== undefined && task.comment_count > 0) || !!commentSavedIds[task.id];
-
-        if (!commented) {
-            alert("Majburiy vazifani tugatish uchun avval hisobot (izoh) yozishingiz kerak.");
-            setCommentFor(task); // Open comments
-            return;
-        }
-
-        setLoadingId(task.id);
-        try {
-            await doneTask(task.id);
-            onRefresh();
-        } catch (e: any) {
-            alert(e.message || "Xatolik");
-        } finally {
-            setLoadingId(null);
-        }
+    const handleDone = (task: Task) => {
+        setCommentFor(task);
+        setIsCompleting(true);
     };
 
     return (
@@ -84,12 +69,17 @@ export default function TaskListMandatory({
             {commentFor && (
                 <CommentModalWhite
                     task={commentFor}
-                    onClose={() => setCommentFor(null)}
+                    onClose={() => {
+                        setCommentFor(null);
+                        setIsCompleting(false);
+                    }}
                     onSaved={() => {
                         setCommentSavedIds(prev => ({ ...prev, [commentFor.id]: true }));
                         onRefresh();
                         setCommentFor(null);
+                        setIsCompleting(false);
                     }}
+                    autoDone={isCompleting}
                 />
             )}
         </div>

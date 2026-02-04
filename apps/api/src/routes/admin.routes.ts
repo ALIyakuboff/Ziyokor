@@ -4,7 +4,7 @@ import { z } from "zod";
 import { authRequired, requireRole } from "../auth";
 import { mustParse, zISODate } from "../utils/validate";
 import { query } from "../db";
-import { todayISO, weekDaysMonToSat, APP_TZ } from "../utils/date";
+import { todayISO, weekDaysMonToSat, APP_TZ, getUzbHour } from "../utils/date";
 import { DateTime } from "luxon";
 import { normalizePhoneDigits, last4Digits } from "../utils/phone";
 
@@ -342,6 +342,20 @@ adminRouter.post("/project-task", requireRole("admin"), async (req: any, res: an
             }),
             req.body
         );
+
+        const today = todayISO();
+        const bodyDate = body.date;
+
+        if (bodyDate < today) {
+            return res.status(400).json({ error: "CANNOT_CREATE_FOR_PAST" });
+        }
+
+        if (bodyDate === today) {
+            const h = getUzbHour();
+            if (h >= 20) {
+                return res.status(403).json({ error: "WORK_HOURS_OVER_20" });
+            }
+        }
 
         const closed = await query("SELECT date FROM day_closures WHERE date=$1 LIMIT 1", [body.date]);
         if (closed.rows.length) return res.status(403).json({ error: "DAY_CLOSED" });

@@ -17,6 +17,7 @@ export default function TaskListNormal({
     const [newTitle, setNewTitle] = useState("");
     const [loadingId, setLoadingId] = useState<string | null>(null);
     const [commentFor, setCommentFor] = useState<Task | null>(null);
+    const [isCompleting, setIsCompleting] = useState(false);
 
     const isPast = dayISO < todayISO();
 
@@ -35,16 +36,9 @@ export default function TaskListNormal({
         }
     };
 
-    const handleDone = async (task: Task) => {
-        setLoadingId(task.id);
-        try {
-            await doneTask(task.id);
-            onRefresh();
-        } catch (e: any) {
-            alert(e.message || "Xatolik");
-        } finally {
-            setLoadingId(null);
-        }
+    const handleDone = (task: Task) => {
+        setCommentFor(task);
+        setIsCompleting(true);
     };
 
     const handleRemove = async (id: string) => {
@@ -132,11 +126,16 @@ export default function TaskListNormal({
             {commentFor && (
                 <CommentModalWhite
                     task={commentFor}
-                    onClose={() => setCommentFor(null)}
+                    onClose={() => {
+                        setCommentFor(null);
+                        setIsCompleting(false);
+                    }}
                     onSaved={() => {
                         onRefresh();
                         setCommentFor(null);
+                        setIsCompleting(false);
                     }}
+                    autoDone={isCompleting}
                 />
             )}
         </div>

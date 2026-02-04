@@ -1,15 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { Task } from "../../api/tasks";
-import { replaceComments, getTaskComments } from "../../api/tasks";
+import { replaceComments, getTaskComments, doneTask } from "../../api/tasks";
 
 export default function CommentModalWhite({
     task,
     onClose,
-    onSaved
+    onSaved,
+    autoDone
 }: {
     task: Task;
     onClose: () => void;
     onSaved: () => void;
+    autoDone?: boolean;
 }) {
     const [items, setItems] = useState<string[]>([""]);
     const [saving, setSaving] = useState(false);
@@ -65,6 +67,9 @@ export default function CommentModalWhite({
         setSaving(true);
         try {
             await replaceComments(task.id, clean);
+            if (autoDone) {
+                await doneTask(task.id);
+            }
             onSaved();
         } finally {
             setSaving(false);

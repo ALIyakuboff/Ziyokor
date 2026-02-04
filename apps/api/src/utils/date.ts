@@ -7,6 +7,10 @@ export function todayISO() {
     return DateTime.now().setZone(APP_TZ).toISODate()!;
 }
 
+export function getUzbHour() {
+    return DateTime.now().setZone(APP_TZ).hour;
+}
+
 export function toISODate(d: DateTime) {
     return d.setZone(APP_TZ).toISODate()!;
 }

@@ -16,6 +16,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }>
 export default function TaskListProject({ items, onRefresh }: { items: Task[]; onRefresh: () => void }) {
     const [commentFor, setCommentFor] = useState<Task | null>(null);
     const [loadingId, setLoadingId] = useState<string | null>(null);
+    const [isCompleting, setIsCompleting] = useState(false);
     const [statusMenuOpen, setStatusMenuOpen] = useState<string | null>(null); // taskId
 
     const changeStatus = async (task: Task, status: string) => {
@@ -31,21 +32,9 @@ export default function TaskListProject({ items, onRefresh }: { items: Task[]; o
         }
     };
 
-    const handleCheck = async (task: Task) => {
-        if (task.status !== 'done') {
-            alert("Vazifani tugatish uchun avval statusni 'Bajarildi' (Done) qilib belgilang.");
-            return;
-        }
-
-        setLoadingId(task.id);
-        try {
-            await doneTask(task.id);
-            onRefresh();
-        } catch (e: any) {
-            alert(e.message || "Xatolik");
-        } finally {
-            setLoadingId(null);
-        }
+    const handleCheck = (task: Task) => {
+        setCommentFor(task);
+        setIsCompleting(true);
     };
 
     return (
@@ -153,11 +142,16 @@ export default function TaskListProject({ items, onRefresh }: { items: Task[]; o
             {commentFor && (
                 <CommentModalWhite
                     task={commentFor}
-                    onClose={() => setCommentFor(null)}
+                    onClose={() => {
+                        setCommentFor(null);
+                        setIsCompleting(false);
+                    }}
                     onSaved={() => {
                         onRefresh();
                         setCommentFor(null);
+                        setIsCompleting(false);
                     }}
+                    autoDone={isCompleting}
                 />
             )}
 
