@@ -4,52 +4,34 @@ import { query } from "../db";
 // For MVP we implement "daily" only (recurrence_type='daily').
 // You can extend weekly/custom later.
 export async function generateMandatoryJob(date: string) {
-    // fetch active templates
-    const templates = await query<any>(
-        `SELECT *
-     FROM mandatory_task_templates
-     WHERE is_active=true
-       AND deleted_at IS NULL
-       AND (start_date IS NULL OR start_date <= $1::date)
-       AND (end_date IS NULL OR end_date >= $1::date)
-       AND recurrence_type='daily'`,
-        [date]
-    );
-
-    let created = 0;
-
-    for (const tpl of templates.rows) {
-        // if already exists for that template/date, skip
-        const exists = await query(
-            `SELECT id FROM tasks
-       WHERE template_id=$1 AND assigned_date=$2::date
-       LIMIT 1`,
-            [tpl.id, date]
+    try {
+        // Bulk insert tasks from active templates for the given date
+        // Uses ON CONFLICT (template_id, assigned_date) DO NOTHING to skip existing ones
+        const result = await query(
+            `INSERT INTO tasks
+                (user_id, title, is_mandatory, status, assigned_date, visible_date, 
+                 template_id, created_by, one_off_by_admin)
+             SELECT 
+                user_id, title, is_mandatory, 'pending', $1::date, $1::date, 
+                id, 'admin', false
+             FROM mandatory_task_templates
+             WHERE is_active = true 
+               AND deleted_at IS NULL
+               AND (start_date IS NULL OR start_date <= $1::date)
+               AND (end_date IS NULL OR end_date >= $1::date)
+               AND recurrence_type = 'daily'
+             ON CONFLICT (template_id, assigned_date) DO NOTHING`,
+            [date]
         );
-        if (exists.rows.length) continue;
 
-        try {
-            await query(
-                `INSERT INTO tasks
-            (user_id, title, is_mandatory, status, assigned_date, visible_date,
-             is_carryover, carryover_from_date, template_id, one_off_by_admin,
-             created_by, created_by_id)
-           VALUES
-            ($1,$2,$3,'pending',$4,$4,false,NULL,$5,false,'admin',$6)`,
-                [tpl.user_id, tpl.title, tpl.is_mandatory, date, tpl.id, tpl.created_by_admin_id]
-            );
-            created++;
-        } catch (err: any) {
-            // If it's a unique violation (23505) or any other insert error, 
-            // we just skip it to prevent crashing the whole request (fixes cards display).
-            if (err.code === '23505' || err.code === '42P10') {
-                console.log(`[job] Task already exists or index error for tpl=${tpl.id} date=${date}, skipping.`);
-            } else {
-                console.error(`[job] Error inserting task for tpl=${tpl.id} date=${date}:`, err.message);
-            }
+        const created = result.rowCount || 0;
+        if (created > 0) {
+            console.log(`[job] generateMandatory date=${date} created=${created}`);
         }
+        return { created };
+    } catch (err: any) {
+        console.error(`[job] Error in generateMandatoryJob for date=${date}:`, err.message);
+        return { created: 0 };
     }
-
-    console.log(`[job] generateMandatory date=${date} created=${created}`);
-    return { created };
 }
+

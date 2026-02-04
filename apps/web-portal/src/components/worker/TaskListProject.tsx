@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { MessageCircle, Check, AlertTriangle, Play, HelpCircle, FileText } from "lucide-react";
+import { Trash2, MessageCircle, Check, AlertTriangle, Play, HelpCircle, FileText } from "lucide-react";
 import CommentModalWhite from "./CommentModalWhite";
-import { updateTaskStatus, doneTask, Task } from "../../api/tasks";
+import { updateTaskStatus, deleteTask, Task } from "../../api/tasks";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
     pending: { label: "Kutilmoqda", color: "#999", icon: FileText },
@@ -13,7 +13,15 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }>
     missed: { label: "Bajarilmadi", color: "#ff4d4f", icon: AlertTriangle }
 };
 
-export default function TaskListProject({ items, onRefresh }: { items: Task[]; onRefresh: () => void }) {
+export default function TaskListProject({
+    items,
+    onRefresh,
+    onDelete
+}: {
+    items: Task[];
+    onRefresh: () => void;
+    onDelete?: (id: string) => void;
+}) {
     const [commentFor, setCommentFor] = useState<Task | null>(null);
     const [loadingId, setLoadingId] = useState<string | null>(null);
     const [isCompleting, setIsCompleting] = useState(false);
@@ -27,6 +35,21 @@ export default function TaskListProject({ items, onRefresh }: { items: Task[]; o
             onRefresh();
         } catch (e: any) {
             alert(e.message || "Xatolik");
+        } finally {
+            setLoadingId(null);
+        }
+    };
+
+    const handleRemove = async (id: string) => {
+        if (!confirm("O'chirilsinmi?")) return;
+        if (onDelete) onDelete(id); // Optimistic UI
+        setLoadingId(id);
+        try {
+            await deleteTask(id);
+            onRefresh();
+        } catch (e: any) {
+            alert(e.message || "Xatolik");
+            onRefresh(); // Revert
         } finally {
             setLoadingId(null);
         }
@@ -133,6 +156,16 @@ export default function TaskListProject({ items, onRefresh }: { items: Task[]; o
                                 title={t.status === 'done' ? "Tugatish" : "Avval 'Bajarildi' tanlang"}
                             >
                                 <Check size={18} />
+                            </button>
+
+                            {/* Delete Button */}
+                            <button
+                                className="btn mini"
+                                onClick={() => handleRemove(t.id)}
+                                disabled={!!loadingId}
+                                title="O'chirish"
+                            >
+                                <Trash2 size={14} />
                             </button>
                         </div>
                     </div>

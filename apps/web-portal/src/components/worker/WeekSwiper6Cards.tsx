@@ -7,7 +7,8 @@ export default function WeekSwiper6Cards({
     anchor,
     mode,
     onChangeAnchor,
-    onRefresh
+    onRefresh,
+    onDelete
 }: {
     days: string[];
     data: Record<string, any>;
@@ -15,6 +16,7 @@ export default function WeekSwiper6Cards({
     mode: "week" | "day";
     onChangeAnchor: (iso: string) => void;
     onRefresh: () => void;
+    onDelete?: (taskId: string) => void;
 }) {
     const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -42,6 +44,7 @@ export default function WeekSwiper6Cards({
                             group={data[d] || { mandatory: [], normal: [], carryover: [], progress: { done: 0, total: 0, percent: 0 } }}
                             onPickDay={onChangeAnchor}
                             onRefresh={onRefresh}
+                            onDelete={onDelete}
                         />
                     </div>
                 ))}

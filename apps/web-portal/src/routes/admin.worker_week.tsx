@@ -22,9 +22,9 @@ export default function AdminWorkerWeekRoute() {
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState<string | null>(null);
 
-    async function reload(wid = workerId, a = anchor) {
+    async function reload(wid = workerId, a = anchor, silent = false) {
         if (!wid) return;
-        setLoading(true);
+        if (!silent) setLoading(true);
         setErr(null);
         try {
             const r = await getWorkerWeek(wid, a);
@@ -33,7 +33,7 @@ export default function AdminWorkerWeekRoute() {
         } catch (e: any) {
             setErr(e?.message || "Xato");
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     }
 
@@ -52,8 +52,8 @@ export default function AdminWorkerWeekRoute() {
     // Real-time event listeners
     useEffect(() => {
         const handleTaskEvent = () => {
-            console.log("[admin] task event received, reloading...");
-            if (workerId) reload(workerId, anchor);
+            console.log("[admin] task event received, reloading silently...");
+            if (workerId) reload(workerId, anchor, true);
         };
 
         onTaskCreated(handleTaskEvent);
@@ -74,11 +74,41 @@ export default function AdminWorkerWeekRoute() {
     }, [workerId, anchor]);
 
     async function handleDeleteTask(taskId: string) {
+        if (!taskId) return;
+
+        // Optimistic UI Update
+        const newData = { ...data };
+        let found = false;
+        for (const day in newData) {
+            const dayData = newData[day];
+            for (const type of ['mandatory', 'normal', 'project', 'carryover'] as const) {
+                const list = dayData[type];
+                const idx = list.findIndex((t: any) => t.id === taskId);
+                if (idx !== -1) {
+                    dayData[type] = list.filter((t: any) => t.id !== taskId);
+                    // Update progress
+                    const deletedTask = list[idx];
+                    dayData.progress.total--;
+                    if (deletedTask.status === 'done') dayData.progress.done--;
+                    if (dayData.progress.total > 0) {
+                        dayData.progress.percent = Math.round((dayData.progress.done / dayData.progress.total) * 100);
+                    } else {
+                        dayData.progress.percent = 0;
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (found) break;
+        }
+        if (found) setData(newData);
+
         try {
             await deleteTaskAdmin(taskId);
-            // reload() will be called by socket event listener onTaskDeleted
+            // reload(workerId, anchor, true); // Socket will trigger it anyway, but we can be safe
         } catch (e: any) {
             alert(e?.message || "O'chirishda xatolik");
+            reload(workerId, anchor, true); // Reverting optimistic UI
         }
     }
 

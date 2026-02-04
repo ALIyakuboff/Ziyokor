@@ -214,10 +214,12 @@ adminRouter.get("/workers/:id/week", requireRole("admin"), async (req: any, res:
         }
 
         const r = await query<any>(
-            `SELECT t.*, (SELECT COUNT(*)::int FROM task_comments WHERE task_id = t.id) as comment_count
+            `SELECT t.*, COUNT(tc.id)::int as comment_count
        FROM tasks t
+       LEFT JOIN task_comments tc ON tc.task_id = t.id
        WHERE t.user_id = $1 AND t.visible_date = ANY($2::date[])
          AND t.deleted_at IS NULL
+       GROUP BY t.id
        ORDER BY t.visible_date ASC,
     CASE
            WHEN t.is_mandatory THEN 1

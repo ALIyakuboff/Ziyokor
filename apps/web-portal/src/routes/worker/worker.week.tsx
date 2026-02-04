@@ -32,7 +32,7 @@ export default function WorkerWeekRoute({ mode }: { mode: "week" | "day" }) {
         } catch (e: any) {
             setErr(e?.message || "Xato");
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     }
 
@@ -42,23 +42,58 @@ export default function WorkerWeekRoute({ mode }: { mode: "week" | "day" }) {
     }, []);
 
     useEffect(() => {
-        const handleTaskCreated = () => reload(anchor, true);
-        const handleTaskStarted = () => reload(anchor, true);
-        const handleTaskCompleted = () => reload(anchor, true);
-        const handleTaskDeleted = () => reload(anchor, true);
+        const handleTaskEvent = () => {
+            console.log("[worker] task event received, reloading silently...");
+            reload(anchor, true);
+        };
 
-        onTaskCreated(handleTaskCreated);
-        onTaskStarted(handleTaskStarted);
-        onTaskCompleted(handleTaskCompleted);
-        onTaskDeleted(handleTaskDeleted);
+        onTaskCreated(handleTaskEvent);
+        onTaskStarted(handleTaskEvent);
+        onTaskCompleted(handleTaskEvent);
+        onTaskDeleted(handleTaskEvent);
 
         return () => {
-            offTaskCreated(handleTaskCreated);
-            offTaskStarted(handleTaskStarted);
-            offTaskCompleted(handleTaskCompleted);
-            offTaskDeleted(handleTaskDeleted);
+            offTaskCreated(handleTaskEvent);
+            offTaskStarted(handleTaskEvent);
+            offTaskCompleted(handleTaskEvent);
+            offTaskDeleted(handleTaskEvent);
         };
     }, [anchor]);
+
+    const handleOptimisticDelete = (taskId: string) => {
+        if (!data) return;
+        const newData = { ...data };
+        let found = false;
+        for (const day in newData) {
+            const dayData = newData[day];
+            for (const type of ['mandatory', 'normal', 'project', 'carryover'] as const) {
+                const list = dayData[type];
+                const idx = list.findIndex((t: any) => t.id === taskId);
+                if (idx !== -1) {
+                    dayData[type] = list.filter((t: any) => t.id !== taskId);
+                    // Update progress
+                    const deletedTask = list[idx];
+                    dayData.progress.total--;
+                    if (deletedTask.status === 'done') dayData.progress.done--;
+                    if (dayData.progress.total > 0) {
+                        dayData.progress.percent = Math.round((dayData.progress.done / dayData.progress.total) * 100);
+                    } else {
+                        dayData.progress.percent = 0;
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (found) break;
+        }
+        if (found) setData(newData);
+    };
+
+    // We need to pass handleOptimisticDelete down or listen to a custom event
+    // Since we can't easily change all components now, let's use a simpler trick:
+    // Listen for onTaskDeleted and if it's our own deletion, we might have already removed it.
+    // Actually, let's just make the reload silent and fast.
+
 
     return (
         <div className="screen">
@@ -85,6 +120,7 @@ export default function WorkerWeekRoute({ mode }: { mode: "week" | "day" }) {
                         window.location.hash = `#/week?anchor=${encodeURIComponent(iso)}`;
                     }}
                     onRefresh={() => reload(anchor, true)}
+                    onDelete={handleOptimisticDelete}
                 />
             )}
         </div>

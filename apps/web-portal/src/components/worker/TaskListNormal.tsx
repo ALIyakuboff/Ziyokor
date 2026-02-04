@@ -8,11 +8,13 @@ import TaskTimer from "./TaskTimer";
 export default function TaskListNormal({
     dayISO,
     items,
-    onRefresh
+    onRefresh,
+    onDelete
 }: {
     dayISO: string;
     items: Task[];
-    onRefresh: () => void
+    onRefresh: () => void;
+    onDelete?: (id: string) => void;
 }) {
     const [newTitle, setNewTitle] = useState("");
     const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -43,12 +45,14 @@ export default function TaskListNormal({
 
     const handleRemove = async (id: string) => {
         if (!confirm("O'chirilsinmi?")) return;
+        if (onDelete) onDelete(id); // Optimistic UI
         setLoadingId(id);
         try {
             await deleteTask(id);
             onRefresh();
         } catch (e: any) {
             alert(e.message || "Xatolik");
+            onRefresh(); // Revert optimistic UI
         } finally {
             setLoadingId(null);
         }

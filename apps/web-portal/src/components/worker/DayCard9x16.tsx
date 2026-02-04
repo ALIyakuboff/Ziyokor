@@ -11,12 +11,15 @@ import { formatDateShort } from "../../utils/date";
 export default function DayCard9x16({
     dayISO,
     group,
-    onRefresh
+    onPickDay,
+    onRefresh,
+    onDelete
 }: {
     dayISO: string;
     group: any;
     onPickDay: (iso: string) => void;
     onRefresh: () => void;
+    onDelete?: (taskId: string) => void;
 }) {
     const weekday = useMemo(() => weekdayUz(dayISO), [dayISO]);
 
@@ -38,12 +41,21 @@ export default function DayCard9x16({
 
                 <div className="section">
                     <div className="sectionTitle">Mening ishlarim</div>
-                    <TaskListNormal dayISO={dayISO} items={group?.normal || []} onRefresh={onRefresh} />
+                    <TaskListNormal
+                        dayISO={dayISO}
+                        items={group?.normal || []}
+                        onRefresh={onRefresh}
+                        onDelete={onDelete}
+                    />
                 </div>
 
                 <div className="section">
                     <div className="sectionTitle" style={{ color: '#4f8dff' }}>Project</div>
-                    <TaskListProject items={group?.project || []} onRefresh={onRefresh} />
+                    <TaskListProject
+                        items={group?.project || []}
+                        onRefresh={onRefresh}
+                        onDelete={onDelete}
+                    />
                 </div>
 
                 <div className="divider" />
