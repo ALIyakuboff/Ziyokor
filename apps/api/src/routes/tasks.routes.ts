@@ -47,11 +47,20 @@ export async function syncCarryovers(userId: string) {
     // Active day is today if before CUTOFF_HOUR, else next work day
     const activeDay = now.hour < CUTOFF_HOUR ? today : nextWorkDay(today);
 
-    // Update tasks that are past their visible_date or are today but it's past 20:00
-    // Actually, visible_date < activeDay covers both cases perfectly.
-    // Update tasks that are past their visible_date or are today but it's past 20:00
-    // Logic: Move all normal/mandatory tasks.
-    // Logic: Move 'project' tasks ONLY if within 60 days of assigned_date.
+    // 1. Mark uncompleted MANDATORY tasks as 'missed' if their visible_date is in the past
+    await query(
+        `UPDATE tasks
+         SET status = 'missed'
+         WHERE user_id = $1
+           AND is_mandatory = true
+           AND status != 'done'
+           AND status != 'missed'
+           AND visible_date < $2::date
+           AND deleted_at IS NULL`,
+        [userId, activeDay]
+    );
+
+    // 2. Carry over NORMAL tasks (non-mandatory, non-project) and valid PROJECT tasks
     await query(
         `UPDATE tasks 
          SET carryover_from_date = visible_date,
@@ -62,7 +71,7 @@ export async function syncCarryovers(userId: string) {
            AND visible_date < $2::date
            AND deleted_at IS NULL
            AND (
-             is_project = false 
+             (is_project = false AND is_mandatory = false)
              OR 
              (is_project = true AND $2::date <= (assigned_date + INTERVAL '60 days'))
            )`,
