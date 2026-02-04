@@ -22,9 +22,14 @@ systemRouter.post("/init-db", async (req: any, res: any) => {
     }
 });
 
-systemRouter.use(authRequired, requireRole("admin"));
+// Helper middleware for Vercel Crons or Admin
+const cronOrAdmin = (req: any, res: any, next: any) => {
+    const isCron = req.headers["x-vercel-cron"] === "1";
+    if (isCron) return next();
+    return requireRole("admin")(req, res, next);
+};
 
-systemRouter.post("/jobs/generate-mandatory", async (req: any, res: any, next: any) => {
+systemRouter.post("/jobs/generate-mandatory", authRequired, cronOrAdmin, async (req: any, res: any, next: any) => {
     try {
         const date = (req.query.date as string) || todayISO();
         await generateMandatoryJob(date);
@@ -34,7 +39,7 @@ systemRouter.post("/jobs/generate-mandatory", async (req: any, res: any, next: a
     }
 });
 
-systemRouter.post("/jobs/close-day", async (req: any, res: any, next: any) => {
+systemRouter.post("/jobs/close-day", authRequired, cronOrAdmin, async (req: any, res: any, next: any) => {
     try {
         const date = (req.query.date as string) || todayISO();
         await closeDayJob(date);
@@ -44,7 +49,7 @@ systemRouter.post("/jobs/close-day", async (req: any, res: any, next: any) => {
     }
 });
 
-systemRouter.post("/jobs/purge-3months", async (_req: any, res: any, next: any) => {
+systemRouter.post("/jobs/purge-3months", authRequired, cronOrAdmin, async (_req: any, res: any, next: any) => {
     try {
         const result = await purge3MonthsJob();
         res.json({ ok: true, result });

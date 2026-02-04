@@ -24,8 +24,16 @@
     ],
     "crons": [
         {
-            "path": "/api/cron/close-day",
-            "schedule": "0 0 * * *"
+            "path": "/api/system/jobs/generate-mandatory",
+            "schedule": "0 3 * * *"
+        },
+        {
+            "path": "/api/system/jobs/close-day",
+            "schedule": "55 18 * * *"
+        },
+        {
+            "path": "/api/system/jobs/purge-3months",
+            "schedule": "10 21 * * *"
         }
     ]
 }
