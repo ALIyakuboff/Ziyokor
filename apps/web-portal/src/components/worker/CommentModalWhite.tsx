@@ -71,6 +71,9 @@ export default function CommentModalWhite({
                 await doneTask(task.id);
             }
             onSaved();
+        } catch (e: any) {
+            console.error("[CommentModal] save error:", e);
+            alert("Saqlashda xatolik: " + (e.message || "Noma'lum xatolik"));
         } finally {
             setSaving(false);
         }

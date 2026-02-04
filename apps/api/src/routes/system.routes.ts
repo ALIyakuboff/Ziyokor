@@ -6,7 +6,7 @@ import { closeDayJob } from "../cron/closeDay";
 import { generateMandatoryJob } from "../cron/generateMandatory";
 import { purge3MonthsJob } from "../cron/purge3Months";
 import { APP_TZ, todayISO } from "../utils/date";
-import { initDbIfNeeded } from "../db";
+import { initDbIfNeeded, query } from "../db";
 
 export const systemRouter = Router();
 
@@ -20,6 +20,15 @@ systemRouter.get("/health", async (_req, res) => {
         env_tz: process.env.TZ,
         node_version: process.versions.node
     });
+});
+
+systemRouter.get("/closures", async (_req, res) => {
+    try {
+        const result = await query("SELECT * FROM day_closures ORDER BY date DESC LIMIT 20");
+        res.json({ ok: true, closures: result.rows });
+    } catch (e: any) {
+        res.status(500).json({ ok: false, error: e.message });
+    }
 });
 
 // Public init endpoint (use with caution, or add a secret header check if needed)
