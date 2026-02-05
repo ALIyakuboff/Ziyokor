@@ -39,11 +39,11 @@ export async function initDbIfNeeded() {
 
     // Apply schema
     const paths = [
-        path.join(__dirname, "sql", "schema.sql"), // Standard relative
+        path.join(__dirname, "..", "sql", "schema.sql"), // Standard relative from src/db
         path.join(process.cwd(), "apps", "api", "src", "sql", "schema.sql"), // Local dev / Mono root
         path.join(process.cwd(), "api", "src", "sql", "schema.sql"), // Post-dist structure
         path.join(process.cwd(), "sql", "schema.sql"), // Flat structure
-        path.join(__dirname, "..", "src", "sql", "schema.sql"), // Another relative
+        path.join(__dirname, "..", "..", "src", "sql", "schema.sql"), // Another relative
     ];
 
     let p = "";
