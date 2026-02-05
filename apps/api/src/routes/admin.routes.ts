@@ -115,6 +115,8 @@ VALUES($1, $2, $3, true, $4, $5, $6)`,
         for (const uid of body.user_ids) {
             emitToUser(uid, "task:created", { bulk: true });
         }
+        // Notify admins so their dashboard reflects the new tasks
+        emitToRole("admin", "task:created", { bulk: true, userIds: body.user_ids });
 
         res.json({ ok: true, created: createdCount });
     } catch (e) {
@@ -295,8 +297,9 @@ RETURNING * `,
 
         const task = ins.rows[0];
 
-        // Emit real-time event to the worker
+        // Emit real-time event to the worker and admin
         emitToUser(body.user_id, "task:created", { task });
+        emitToRole("admin", "task:created", { task, userId: body.user_id });
 
         res.json({ task });
     } catch (e) {
@@ -381,8 +384,9 @@ RETURNING * `,
 
         const task = ins.rows[0];
 
-        // Emit real-time event to the worker
+        // Emit real-time event to the worker and admin
         emitToUser(body.user_id, "task:created", { task });
+        emitToRole("admin", "task:created", { task, userId: body.user_id });
 
         res.json({ task });
     } catch (e) {
