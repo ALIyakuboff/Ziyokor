@@ -7,8 +7,9 @@ export function initSocket(token: string): Socket {
         return socket;
     }
 
-    let API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? undefined : "http://localhost:8080");
+    let API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:8080");
     if (API_URL && !API_URL.startsWith("http")) API_URL = `https://${API_URL}`;
+    // If API_URL is empty string, io() will use window.location
     console.log("[socket] Initializing with API_URL:", API_URL || "window.location");
 
     socket = io(API_URL, {
