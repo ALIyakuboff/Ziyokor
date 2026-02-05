@@ -9,15 +9,17 @@ export function initSocket(token: string): Socket {
 
     let API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? undefined : "http://localhost:8080");
     if (API_URL && !API_URL.startsWith("http")) API_URL = `https://${API_URL}`;
+    console.log("[socket] Initializing with API_URL:", API_URL || "window.location");
 
     socket = io(API_URL, {
         auth: {
             token
         },
+        transports: ["websocket"], // Avoid polling 400 errors on multi-instance/serverless
         autoConnect: true,
         reconnection: true,
         reconnectionDelay: 1000,
-        reconnectionAttempts: 5
+        reconnectionAttempts: 20 // Increase attempts for resilience
     });
 
     socket.on("connect", () => {
