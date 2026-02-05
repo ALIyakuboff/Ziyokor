@@ -1,7 +1,7 @@
 import { Server as HttpServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import jwt from "jsonwebtoken";
-import { query } from "./db";
+import { query } from "../db";
 
 let io: any = null;
 
