@@ -29,10 +29,10 @@ systemRouter.get("/health", async (_req, res) => {
     });
 });
 
-systemRouter.get("/closures", async (_req, res) => {
+systemRouter.get("/templates/debug", authRequired, requireRole("admin"), async (_req, res) => {
     try {
-        const result = await query("SELECT * FROM day_closures ORDER BY date DESC LIMIT 20");
-        res.json({ ok: true, closures: result.rows });
+        const result = await query("SELECT * FROM mandatory_task_templates ORDER BY created_at DESC");
+        res.json({ ok: true, templates: result.rows });
     } catch (e: any) {
         res.status(500).json({ ok: false, error: e.message });
     }

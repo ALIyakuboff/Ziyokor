@@ -4,16 +4,7 @@ import { authRequired } from "../auth";
 import { mustParse, zISODate } from "../utils/validate";
 import { query } from "../db";
 import { todayISO, weekDaysMonToSat, APP_TZ } from "../utils/date";
-// Socket.IO is optional (not available in serverless)
-let emitToUser: any = () => { };
-let emitToRole: any = () => { };
-try {
-    const socketModule = require("../socket");
-    emitToUser = socketModule.emitToUser;
-    emitToRole = socketModule.emitToRole;
-} catch (e) {
-    console.log("[tasks] Socket.IO not available (serverless mode)");
-}
+import { emitToUser, emitToRole } from "../socket";
 import { DateTime } from "luxon";
 import { generateMandatoryJob } from "../cron/generateMandatory";
 

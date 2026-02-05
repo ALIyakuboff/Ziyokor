@@ -8,16 +8,7 @@ import { todayISO, weekDaysMonToSat, APP_TZ, getUzbHour } from "../utils/date";
 import { DateTime } from "luxon";
 import { normalizePhoneDigits, last4Digits } from "../utils/phone";
 
-// Socket.IO is optional (not available in serverless)
-let emitToUser: any = () => { };
-let emitToRole: any = () => { };
-try {
-    const socketModule = require("../socket");
-    emitToUser = socketModule.emitToUser;
-    emitToRole = socketModule.emitToRole;
-} catch (e) {
-    console.log("[admin] Socket.IO not available (serverless mode)");
-}
+import { emitToUser, emitToRole } from "../socket";
 import { syncCarryovers } from "./tasks.routes";
 import { generateMandatoryJob } from "../cron/generateMandatory";
 
@@ -247,8 +238,15 @@ adminRouter.get("/workers/:id/week", requireRole("admin"), async (req: any, res:
         }
 
         for (const t of r.rows) {
-            const d = t.visible_date;
-            if (!grouped[d]) continue;
+            let d = t.visible_date;
+            if (d instanceof Date) {
+                d = DateTime.fromJSDate(d).setZone(APP_TZ).toISODate();
+            }
+
+            if (!grouped[d]) {
+                console.warn(`[admin] task ${t.id} has visible_date ${d} not in current days [${days}]`);
+                continue;
+            }
             grouped[d].progress.total++;
             if (t.status === "done") grouped[d].progress.done++;
 

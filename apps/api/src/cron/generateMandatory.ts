@@ -25,9 +25,7 @@ export async function generateMandatoryJob(date: string) {
         );
 
         const created = result.rowCount || 0;
-        if (created > 0) {
-            console.log(`[job] generateMandatory date=${date} created=${created}`);
-        }
+        console.log(`[job] generateMandatory date=${date} status=success created=${created}`);
         return { created };
     } catch (err: any) {
         console.error(`[job] Error in generateMandatoryJob for date=${date}:`, err.message);
