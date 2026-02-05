@@ -102,6 +102,26 @@ export async function initDbIfNeeded() {
     } catch (err: any) {
         console.error("[db] Aggressive Migration index error (CRITICAL 42P10):", err.message);
     }
+
+    // 3. Update Status Constraint (Fix for 23514)
+    try {
+        console.log("[db] Migration: Updating tasks status constraint...");
+        // valid statuses: pending, in_progress, done, missed, started, problem, testing
+
+        // Try to drop the default named constraint. Postgres usually names it tasks_status_check
+        await query(`ALTER TABLE tasks DROP CONSTRAINT IF EXISTS tasks_status_check`);
+
+        // Re-add with new values
+        await query(`
+            ALTER TABLE tasks 
+            ADD CONSTRAINT tasks_status_check 
+            CHECK (status IN ('pending','in_progress','done','missed','started','problem','testing'))
+        `);
+        console.log("[db] Migration: Status constraint updated successfully.");
+    } catch (err: any) {
+        console.error("[db] Migration status constraint error:", err.message);
+    }
+
     // ONE-TIME CLEANUP for hidden duplicate phone
     try {
         const cleanupPhone = "998905970105";

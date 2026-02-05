@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   title TEXT NOT NULL,
   is_mandatory BOOLEAN NOT NULL DEFAULT FALSE,
   is_project BOOLEAN NOT NULL DEFAULT FALSE,
-  status TEXT NOT NULL CHECK (status IN ('pending','in_progress','done','missed')) DEFAULT 'pending',
+  status TEXT NOT NULL CHECK (status IN ('pending','in_progress','done','missed','started','problem','testing')) DEFAULT 'pending',
 
   assigned_date DATE NOT NULL,
   visible_date DATE NOT NULL,
