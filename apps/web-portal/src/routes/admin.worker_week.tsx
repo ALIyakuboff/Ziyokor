@@ -3,7 +3,7 @@ import Header3Panel from "../components/Header3Panel";
 import WeekGrid6Cards from "../components/WeekGrid6Cards";
 import { getWorkerWeek, listWorkers, deleteTaskAdmin } from "../api/admin";
 import { todayISO } from "../utils/date";
-import { onTaskCreated, onTaskStarted, onTaskCompleted, onTaskDeleted, onTaskCommentAdded, onTaskCommentsUpdated, offTaskCreated, offTaskStarted, offTaskCompleted, offTaskDeleted, offTaskCommentAdded, offTaskCommentsUpdated } from "../socket";
+import { onTaskCreated, onTaskStarted, onTaskCompleted, onTaskDeleted, onTaskUpdated, onTaskCommentAdded, onTaskCommentsUpdated, offTaskCreated, offTaskStarted, offTaskCompleted, offTaskDeleted, offTaskUpdated, offTaskCommentAdded, offTaskCommentsUpdated } from "../socket";
 
 function getParams() {
     const hash = window.location.hash || "";
@@ -60,6 +60,7 @@ export default function AdminWorkerWeekRoute() {
         onTaskStarted(handleTaskEvent);
         onTaskCompleted(handleTaskEvent);
         onTaskDeleted(handleTaskEvent);
+        onTaskUpdated(handleTaskEvent);
         onTaskCommentAdded(handleTaskEvent);
         onTaskCommentsUpdated(handleTaskEvent);
 
@@ -68,6 +69,7 @@ export default function AdminWorkerWeekRoute() {
             offTaskStarted(handleTaskEvent);
             offTaskCompleted(handleTaskEvent);
             offTaskDeleted(handleTaskEvent);
+            offTaskUpdated(handleTaskEvent);
             offTaskCommentAdded(handleTaskEvent);
             offTaskCommentsUpdated(handleTaskEvent);
         };

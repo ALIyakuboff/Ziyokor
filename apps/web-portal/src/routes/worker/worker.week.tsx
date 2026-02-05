@@ -3,7 +3,7 @@ import WorkerHeader3Panel from "../../components/worker/WorkerHeader3Panel";
 import { useSession } from "../../state/session";
 import { todayISO } from "../../utils/date";
 import WeekSwiper6Cards from "../../components/worker/WeekSwiper6Cards";
-import { onTaskCreated, onTaskStarted, onTaskCompleted, onTaskDeleted, offTaskCreated, offTaskStarted, offTaskCompleted, offTaskDeleted } from "../../socket";
+import { onTaskCreated, onTaskStarted, onTaskCompleted, onTaskDeleted, onTaskUpdated, offTaskCreated, offTaskStarted, offTaskCompleted, offTaskDeleted, offTaskUpdated } from "../../socket";
 import { getMyWeek, createMyTask } from "../../api/tasks";
 
 export default function WorkerWeekRoute({ mode }: { mode: "week" | "day" }) {
@@ -51,12 +51,14 @@ export default function WorkerWeekRoute({ mode }: { mode: "week" | "day" }) {
         onTaskStarted(handleTaskEvent);
         onTaskCompleted(handleTaskEvent);
         onTaskDeleted(handleTaskEvent);
+        onTaskUpdated(handleTaskEvent);
 
         return () => {
             offTaskCreated(handleTaskEvent);
             offTaskStarted(handleTaskEvent);
             offTaskCompleted(handleTaskEvent);
             offTaskDeleted(handleTaskEvent);
+            offTaskUpdated(handleTaskEvent);
         };
     }, [anchor]);
 

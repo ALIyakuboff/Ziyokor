@@ -64,6 +64,10 @@ export function onTaskDeleted(callback: (data: any) => void) {
     socket?.on("task:deleted", callback);
 }
 
+export function onTaskUpdated(callback: (data: any) => void) {
+    socket?.on("task:updated", callback);
+}
+
 export function onTaskCommentAdded(callback: (data: any) => void) {
     socket?.on("task:comment_added", callback);
 }
@@ -87,6 +91,10 @@ export function offTaskCompleted(callback: (data: any) => void) {
 
 export function offTaskDeleted(callback: (data: any) => void) {
     socket?.off("task:deleted", callback);
+}
+
+export function offTaskUpdated(callback: (data: any) => void) {
+    socket?.off("task:updated", callback);
 }
 
 export function offTaskCommentAdded(callback: (data: any) => void) {
