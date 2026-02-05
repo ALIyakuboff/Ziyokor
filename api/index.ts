@@ -25,10 +25,14 @@ export default async (req: any, res: any) => {
 
         if (!initialized) {
             console.log("[Vercel-Init] Initializing DB...");
-            await initDbIfNeeded().catch(err => {
-                console.error("[Vercel-Init] DB Initialization Error:", err);
-                throw err; // Re-throw to show 500 in Vercel logs
-            });
+            // Optionally disable auto-init if you are sure DB is ready:
+            // await initDbIfNeeded(); 
+            try {
+                await initDbIfNeeded();
+            } catch (initErr: any) {
+                console.error("[Vercel-Init] DB Initialization Error:", initErr);
+                // We continue for now to see if the actual request works
+            }
             initialized = true;
         }
 
@@ -37,8 +41,9 @@ export default async (req: any, res: any) => {
         console.error("[Vercel-Handler] Fatal Error:", error);
         res.status(500).json({
             error: "API_ERROR",
-            message: error.message,
-            stack: process.env.NODE_ENV === "development" ? error.stack : undefined
+            message: error.message || "Unknown error occurred",
+            details: error.code || undefined,
+            stack: error.stack // Include stack to help user debug
         });
     }
 };
