@@ -71,7 +71,15 @@ CREATE INDEX IF NOT EXISTS idx_tasks_user_assigned ON tasks(user_id, assigned_da
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_deleted ON tasks(deleted_at);
 DROP INDEX IF EXISTS idx_tasks_template_assigned;
-CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_tpl_assigned_unique ON tasks(template_id, assigned_date);
+74: 
+75: -- Remove duplicates before creating unique index
+76: DELETE FROM tasks a USING tasks b
+77: WHERE a.id < b.id
+78:   AND a.template_id IS NOT NULL
+79:   AND a.template_id = b.template_id
+80:   AND a.assigned_date = b.assigned_date;
+81: 
+82: CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_tpl_assigned_unique ON tasks(template_id, assigned_date);
 
 -- COMMENTS
 CREATE TABLE IF NOT EXISTS task_comments (
