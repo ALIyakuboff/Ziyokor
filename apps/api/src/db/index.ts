@@ -123,15 +123,7 @@ export async function initDbIfNeeded() {
     }
 
     // ONE-TIME CLEANUP for hidden duplicate phone
-    try {
-        const cleanupPhone = "998905970105";
-        const delRes = await query("DELETE FROM users WHERE phone_login = $1", [cleanupPhone]);
-        if (delRes.rowCount && delRes.rowCount > 0) {
-            console.log(`[db] CLEANUP: Deleted ${delRes.rowCount} user(s) with phone ${cleanupPhone}`);
-        }
-    } catch (err) {
-        console.error("[db] cleanup error:", err);
-    }
+    // Cleanup block removed to prevent accidental user deletion
 
     await ensureDefaultAdmin();
 }
