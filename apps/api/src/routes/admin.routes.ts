@@ -97,20 +97,24 @@ VALUES($1, $2, $3, true, $4, $5, $6)`,
         // Let's manually trigger generation for today for these specific users/templates?
         // Or just re-run the daily generator safely (it skips duplicates).
         const today = todayISO();
-        await generateMandatoryJob(today);
+        console.log(`[admin] triggering generateMandatoryJob for ${today}`);
+        const generated = await generateMandatoryJob(today);
 
         // Notify workers. Since generateMandatoryJob doesn't return tasks, 
         // and we might have multiple users, we emit a generic refresh event 
         // or we could query the newly created tasks. 
         // Simple way: notify each user affected.
+        // Notify workers.
         for (const uid of body.user_ids) {
             emitToUser(uid, "task:created", { bulk: true });
         }
-        // Notify admins so their dashboard reflects the new tasks
+        // Notify admins
         emitToRole("admin", "task:created", { bulk: true, userIds: body.user_ids });
 
+        console.log(`[admin] templates created=${createdCount}, generated_tasks=${generated?.created || 0}`);
         res.json({ ok: true, created: createdCount });
-    } catch (e) {
+    } catch (e: any) {
+        console.error("[admin] create templates error:", e);
         next(e);
     }
 });
