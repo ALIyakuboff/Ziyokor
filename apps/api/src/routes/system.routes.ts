@@ -129,4 +129,17 @@ export function startCrons() {
     );
 
     console.log(`[cron] started (TZ=${APP_TZ})`);
+
+    // ON STARTUP: Check if we missed the morning 08:00 job (e.g. server slept)
+    // generateMandatoryJob is idempotent (ON CONFLICT DO NOTHING), so safe to run anytime.
+    // We run it 5s after startup to ensure DB is fully warm.
+    setTimeout(() => {
+        const now = DateTime.now().setZone(APP_TZ);
+        // If it's past 08:00, ensure tasks exist for today
+        if (now.hour >= 8) {
+            console.log("[cron] Startup check: Running generateMandatoryJob to catch up missed tasks...");
+            const date = todayISO();
+            generateMandatoryJob(date).catch(err => console.error("[cron] Startup catch-up failed:", err));
+        }
+    }, 5000);
 }
