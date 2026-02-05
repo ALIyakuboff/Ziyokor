@@ -8,8 +8,6 @@ import { initSocketServer } from "./socket";
 async function bootstrap() {
     const port = Number(process.env.PORT || 8080);
 
-    await initDbIfNeeded();
-
     const app = createApp();
     const httpServer = createServer(app);
 
@@ -18,11 +16,15 @@ async function bootstrap() {
 
     httpServer.listen(port, () => {
         console.log(`[api] listening on :${port} (TZ=${process.env.TZ || "system"})`);
-    });
 
-    // Start cron jobs inside the API process (good for single-instance deployment).
-    // If you run multiple instances later, move crons to a single dedicated worker.
-    startCrons();
+        // Background tasks to avoid Render timeout
+        initDbIfNeeded().then(() => {
+            console.log("[api] DB and migrations successful");
+            startCrons();
+        }).catch(err => {
+            console.error("[api] Background init failed:", err);
+        });
+    });
 
     // Graceful shutdown
     const shutdown = () => {

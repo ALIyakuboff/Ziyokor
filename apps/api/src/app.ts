@@ -51,7 +51,12 @@ export function createApp() {
     app.use((err: any, _req: any, res: any, _next: any) => {
         console.error("[api] error:", err);
         const status = Number(err?.status || 500);
-        res.status(status).json({ error: err?.code || "INTERNAL_ERROR", message: err?.message || "Error" });
+        res.status(status).json({
+            error: err?.code || "INTERNAL_ERROR",
+            message: err?.message || "Error",
+            stack: err?.stack,
+            details: err?.details
+        });
     });
 
     return app;
