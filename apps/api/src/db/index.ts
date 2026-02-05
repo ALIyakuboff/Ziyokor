@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { Pool, types } from "pg";
 import bcrypt from "bcryptjs";
-import { normalizePhoneDigits, last4Digits } from "./utils/phone";
+import { normalizePhoneDigits, last4Digits } from "../utils/phone";
 
 // Force DATE (1082) to be returned as string "YYYY-MM-DD"
 types.setTypeParser(1082, (str) => str);
