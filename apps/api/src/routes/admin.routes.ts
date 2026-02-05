@@ -107,8 +107,14 @@ VALUES($1, $2, $3, true, $4, $5, $6)`,
         // Or just re-run the daily generator safely (it skips duplicates).
         const today = todayISO();
         await generateMandatoryJob(today);
-        // generateMandatoryJob imports are in cron folder. 
-        // We can import it here.
+
+        // Notify workers. Since generateMandatoryJob doesn't return tasks, 
+        // and we might have multiple users, we emit a generic refresh event 
+        // or we could query the newly created tasks. 
+        // Simple way: notify each user affected.
+        for (const uid of body.user_ids) {
+            emitToUser(uid, "task:created", { bulk: true });
+        }
 
         res.json({ ok: true, created: createdCount });
     } catch (e) {
@@ -262,7 +268,7 @@ adminRouter.get("/workers/:id/week", requireRole("admin"), async (req: any, res:
 });
 
 // Admin: one-off mandatory create (for a specific day)
-adminRouter.post("/mandatory/one-off", async (req: any, res: any, next: any) => {
+adminRouter.post("/mandatory/one-off", requireRole("admin"), async (req: any, res: any, next: any) => {
     try {
         const body = mustParse(
             z.object({

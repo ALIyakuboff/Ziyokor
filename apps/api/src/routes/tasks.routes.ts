@@ -405,6 +405,11 @@ tasksRouter.patch("/:id/start", async (req: any, res: any, next: any) => {
             return res.status(403).json({ error: "CANNOT_WORK_ON_FUTURE_TASK" });
         }
 
+        // Ensure not past
+        if (ensureDateStr(date) < todayISO()) {
+            return res.status(403).json({ error: "CANNOT_WORK_ON_PAST_TASK" });
+        }
+
         const up = await query<any>(
             `UPDATE tasks SET status='in_progress', started_at=NOW()
        WHERE id=$1
@@ -454,6 +459,11 @@ tasksRouter.patch("/:id/status", async (req: any, res: any, next: any) => {
         // Ensure not future
         if (ensureDateStr(date) > todayISO()) {
             return res.status(403).json({ error: "CANNOT_WORK_ON_FUTURE_TASK" });
+        }
+
+        // Ensure not past
+        if (ensureDateStr(date) < todayISO()) {
+            return res.status(403).json({ error: "CANNOT_WORK_ON_PAST_TASK" });
         }
 
         const updates: string[] = ["status=$2"];
@@ -516,6 +526,11 @@ tasksRouter.patch("/:id/done", async (req: any, res: any, next: any) => {
         // Ensure not future
         if (ensureDateStr(date) > todayISO()) {
             return res.status(403).json({ error: "CANNOT_WORK_ON_FUTURE_TASK" });
+        }
+
+        // Ensure not past
+        if (ensureDateStr(date) < todayISO()) {
+            return res.status(403).json({ error: "CANNOT_WORK_ON_PAST_TASK" });
         }
 
         // Enforce comment for ALL tasks
