@@ -34,9 +34,13 @@ export async function generateWorkerPDFReport(
 
     data.forEach(worker => {
         worker.tasks.forEach((task, idx) => {
-            const statusLabel = task.status === "done" ? "BAJARILGAN" : "BAJARILMAGAN";
+            let statusLabel = task.status === "done" ? "BAJARILGAN" : "BAJARILMAGAN";
+            if (task.latest_comment && task.latest_comment.trim().length > 0) {
+                statusLabel = task.latest_comment;
+            }
+
             const row = [
-                idx === 0 ? worker.worker_name : "", // Show name only on first task for cleaner look
+                idx === 0 ? worker.worker_name : "",
                 task.visible_date,
                 task.title,
                 statusLabel
