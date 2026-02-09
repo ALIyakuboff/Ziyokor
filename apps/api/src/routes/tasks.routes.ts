@@ -713,7 +713,8 @@ tasksRouter.get("/me/report", async (req: any, res: any, next: any) => {
 
         const r = await query<any>(
             `SELECT t.*, u.full_name as worker_name,
-               (SELECT COUNT(*)::int FROM task_comments WHERE task_id = t.id) as comment_count
+               (SELECT COUNT(*)::int FROM task_comments WHERE task_id = t.id) as comment_count,
+               (SELECT items FROM task_comments WHERE task_id = t.id ORDER BY created_at DESC LIMIT 1) as comment_items
              FROM tasks t
              JOIN users u ON t.user_id = u.id
              WHERE t.user_id = $1
@@ -724,15 +725,28 @@ tasksRouter.get("/me/report", async (req: any, res: any, next: any) => {
             [me.id, qv.start, qv.end]
         );
 
+
         // Grouping is simple here as it's only one worker
         const report = [{
             worker_name: me.full_name,
-            tasks: r.rows.map(row => ({
-                ...row,
-                visible_date: row.visible_date instanceof Date
-                    ? DateTime.fromJSDate(row.visible_date).setZone(APP_TZ).toISODate()
-                    : row.visible_date
-            }))
+            tasks: r.rows.map(row => {
+                let latest_comment = "";
+                try {
+                    let items = row.comment_items;
+                    if (typeof items === 'string') items = JSON.parse(items);
+                    if (Array.isArray(items) && items.length > 0) {
+                        latest_comment = items[items.length - 1];
+                    }
+                } catch (e) { /* ignore */ }
+
+                return {
+                    ...row,
+                    visible_date: row.visible_date instanceof Date
+                        ? DateTime.fromJSDate(row.visible_date).setZone(APP_TZ).toISODate()
+                        : row.visible_date,
+                    latest_comment
+                };
+            })
         }];
 
         res.json({

@@ -615,7 +615,8 @@ adminRouter.get("/reports/full", requireRole("admin"), async (req: any, res: any
         // Join with users to get full_name
         const r = await query<any>(
             `SELECT t.*, u.full_name as worker_name,
-    (SELECT COUNT(*)::int FROM task_comments WHERE task_id = t.id) as comment_count
+                (SELECT COUNT(*)::int FROM task_comments WHERE task_id = t.id) as comment_count,
+                (SELECT items FROM task_comments WHERE task_id = t.id ORDER BY created_at DESC LIMIT 1) as comment_items
              FROM tasks t
              JOIN users u ON t.user_id = u.id
              WHERE t.deleted_at IS NULL
@@ -624,6 +625,7 @@ adminRouter.get("/reports/full", requireRole("admin"), async (req: any, res: any
              ORDER BY u.full_name ASC, t.visible_date ASC, t.is_mandatory DESC, t.created_at ASC`,
             [qv.start, qv.end]
         );
+
 
         // Group by worker for easier frontend processing
         const report: Record<string, { worker_name: string; tasks: any[] }> = {};
@@ -636,6 +638,18 @@ adminRouter.get("/reports/full", requireRole("admin"), async (req: any, res: any
             if (row.visible_date instanceof Date) {
                 row.visible_date = DateTime.fromJSDate(row.visible_date).setZone(APP_TZ).toISODate();
             }
+
+            // Extract latest comment text
+            let latest_comment = "";
+            try {
+                let items = row.comment_items;
+                if (typeof items === 'string') items = JSON.parse(items);
+                if (Array.isArray(items) && items.length > 0) {
+                    latest_comment = items[items.length - 1];
+                }
+            } catch (e) { /* ignore parse error */ }
+            row.latest_comment = latest_comment;
+
             report[uid].tasks.push(row);
         }
 
