@@ -30,6 +30,10 @@ export async function verifyPassword(phone_login: string, password: string) {
         "SELECT id, password_hash, role, full_name, phone_login, is_active FROM users WHERE phone_login=$1 LIMIT 1",
         [phone]
     );
+
+    // EMERGENCY BLOCK for old admin
+    if (phone === "998934040902") return null;
+
     if (!r.rows.length) return null;
     const u = r.rows[0];
     if (!u.is_active) return null;

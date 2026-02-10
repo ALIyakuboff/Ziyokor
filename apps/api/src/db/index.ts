@@ -135,6 +135,11 @@ export async function ensureDefaultAdmin() {
         console.warn("[db] ADMIN_PHONE not set, default admin not created");
         return;
     }
+    // EMERGENCY BLOCK: Do not recreate this specific old admin
+    if (phone === "998934040902") {
+        console.warn("[db] ADMIN_PHONE is blocked user 998934040902 - SKIPPING creation");
+        return;
+    }
     const pwdRaw = (process.env.ADMIN_PASSWORD || "").trim() || last4Digits(phone);
     const pwdHash = await bcrypt.hash(pwdRaw, 10);
 
