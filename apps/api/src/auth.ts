@@ -46,7 +46,7 @@ export async function verifyPassword(phone_login: string, password: string) {
     return user;
 }
 
-export function authRequired(req: any, res: any, next: any) {
+export async function authRequired(req: any, res: any, next: any) {
     const h = req.headers.authorization || "";
     const token = h.startsWith("Bearer ") ? h.slice(7) : "";
     if (!token) {
@@ -56,11 +56,27 @@ export function authRequired(req: any, res: any, next: any) {
 
     try {
         const payload = jwt.verify(token, JWT_SECRET) as any;
+
+        // Verify user exists and is active
+        const userResult = await query<{ id: string; role: Role; full_name: string; phone_login: string; is_active: boolean }>(
+            "SELECT id, role, full_name, phone_login, is_active FROM users WHERE id=$1",
+            [payload.sub]
+        );
+
+        if (!userResult.rows.length) {
+            return res.status(401).json({ error: "UNAUTHORIZED" });
+        }
+
+        const user = userResult.rows[0];
+        if (!user.is_active) {
+            return res.status(403).json({ error: "ACCOUNT_DISABLED" });
+        }
+
         (req as any).user = {
-            id: payload.sub,
-            role: payload.role,
-            full_name: payload.full_name,
-            phone_login: payload.phone_login
+            id: user.id,
+            role: user.role,
+            full_name: user.full_name,
+            phone_login: user.phone_login
         } satisfies AuthedUser;
         next();
     } catch {
