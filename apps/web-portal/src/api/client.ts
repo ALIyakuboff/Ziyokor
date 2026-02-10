@@ -17,6 +17,11 @@ export async function apiFetch<T>(path: string, opts?: RequestInit): Promise<T> 
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+            localStorage.removeItem("wc_token");
+            localStorage.removeItem("wc_user");
+            window.location.href = "/login";
+        }
         const msg = data?.error || data?.message || "API_ERROR";
         throw new Error(msg);
     }
