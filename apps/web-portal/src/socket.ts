@@ -16,7 +16,7 @@ export function initSocket(token: string): Socket {
         auth: {
             token
         },
-        transports: ["websocket"], // Avoid polling 400 errors on multi-instance/serverless
+        transports: ["polling", "websocket"], // Enable polling for better reliability on Render
         autoConnect: true,
         reconnection: true,
         reconnectionDelay: 1000,
