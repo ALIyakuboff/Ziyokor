@@ -10,8 +10,8 @@ export async function closeDayJob(date: string, force: boolean = false) {
     const today = todayISO();
     if (date === today && !force) {
         const hour = DateTime.now().setZone(APP_TZ).hour;
-        if (hour < 20) {
-            console.warn(`[job] closeDay REJECTED for today (${date}) at hour ${hour} (Safeguard < 20:00)`);
+        if (hour < 24) {
+            console.warn(`[job] closeDay REJECTED for today (${date}) at hour ${hour} (Safeguard: Cannot close today until midnight)`);
             return { ok: false, error: "TOO_EARLY_FOR_TODAY" };
         }
     }

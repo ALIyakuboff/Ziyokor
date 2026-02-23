@@ -11,7 +11,7 @@ import { generateMandatoryJob } from "../cron/generateMandatory";
 export const tasksRouter = Router();
 
 // Cutoff for task creation and carryovers (20:00)
-const CUTOFF_HOUR = 20;
+const CUTOFF_HOUR = 24;
 
 // Helper to get next work day (Mon-Sat)
 function nextWorkDay(iso: string): string {
@@ -341,7 +341,7 @@ tasksRouter.post("/me", async (req: any, res: any, next: any) => {
         // CUTOFF_HOUR limit for TODAY
         const now = DateTime.now().setZone(APP_TZ);
         if (ensureDateStr(date) === todayISO() && now.hour >= CUTOFF_HOUR) {
-            return res.status(403).json({ error: `CANNOT_CREATE_TASK_AFTER_${CUTOFF_HOUR}_00` });
+            return res.status(403).json({ error: `CANNOT_CREATE_TASK_AFTER_23_59` });
         }
 
         const closed = await query<{ date: string }>("SELECT date FROM day_closures WHERE date=$1 LIMIT 1", [date]);
